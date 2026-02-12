@@ -1,0 +1,8 @@
+DIRECTED WEIGHTED
+A: B(2) C(5)
+B: D(3)
+C: E(1)
+D:
+E: E(4)  # петля с весом
+F: A(7)
+G:

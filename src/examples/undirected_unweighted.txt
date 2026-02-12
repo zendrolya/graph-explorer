@@ -1,0 +1,8 @@
+UNDIRECTED
+A: B C
+B: A D
+C: A E
+D: B
+E: C
+F:   # изолированная
+G: G # петля
