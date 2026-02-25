@@ -1,8 +1,256 @@
+/*
+Как храним все виды графов:
+1) Невзвешенный граф - Map(vertex, Set(neighbors))
+2) Взвешенный граф - Map(vertex, Map(neighbor, weight))
+
++ отдельный метод, создающий список ребер на основе списка смежности
+*/
+
 export class Graph {
-    constructor(options = {}) {
-        this.adjacencyList = new Map(); // список смежности: Map(vertex, Map(neighbor, weight))
-        this.isDirected = options.isDirected ?? false; // ориентированный граф
-        this.isWeighted = options.isWeighted ?? false; // взвешенный граф
-        this.vertexCount = 0;
+    constructor(options = {}) { // конструктор по умолчанию
+        this.adjacencyList = new Map(); // список смежности
+        this.isDirected = options.isDirected ?? false; // ориентированный или нет граф
+        this.isWeighted = options.isWeighted ?? false; // взвешенный или нет граф
+    }
+
+    toEdgeList() { // метод создания списка ребер
+        const edges = [];
+        
+        for (const [from, neighbors] of this.adjacencyList) {
+            for (const [to, weight] of neighbors) {
+                // Для неориентированных графов избегаем дублирования
+                if (this.isDirected || from <= to) {
+                    edges.push({ from, to, weight });
+                }
+            }
+        }
+        
+        return edges;
+    }
+
+    static fromFile(filename, options = {}) { // Конструктор для графов-примеров
+        const graph = new Graph(options);
+        const content = require(`../examples/${filename}`);
+        
+        const lines = content.split('\n').filter(line => line.trim());
+        
+        for (const line of lines) {
+            if (line.startsWith('DIRECTED') || line.startsWith('UNDIRECTED')) continue;
+            
+            const [vertex, neighborsPart] = line.split(':').map(s => s.trim());
+            graph.addVertex(vertex);
+            
+            if (neighborsPart) {
+                const neighbors = neighborsPart.split(/\s+/);
+                for (const n of neighbors) {
+                    if (n) graph.addEdge(vertex, n);
+                }
+            }
+        }
+        
+        return graph;
+    }
+
+    static fromGraph(otherGraph) { // копирующий конструктор
+        const graph = new Graph({
+            isDirected: otherGraph.isDirected,
+            isWeighted: otherGraph.isWeighted
+        });
+        
+        for (const [vertex, neighbors] of otherGraph.adjacencyList) {
+            const neighborsCopy = new Map();
+            for (const [neighbor, weight] of neighbors) {
+                neighborsCopy.set(neighbor, weight);
+            }
+            graph.adjacencyList.set(vertex, neighborsCopy);
+        }
+        
+        return graph;
+    }
+
+    /*
+        МЕТОДЫ ГРАФА
+    */
+
+    showAdjacencyList() {
+        return "Список смежности:"
+    }
+
+    // Добавление вершины
+    addVertex(vertex) {
+        if (!vertex || typeof vertex !== 'string') {
+            throw new Error('Имя вершины должно быть непустой строкой');
+        }
+        
+        if (this.adjacencyList.has(vertex)) {
+            console.warn(`Вершина ${vertex} уже существует`);
+            return false;
+        }
+        
+        this.adjacencyList.set(vertex, this.isWeighted ? new Map() : new Set());
+        return true;
+    }
+
+    // Добавление ребра/дуги
+    addEdge(from, to, weight = 1) {
+        // Проверка существования вершин
+        if (!this.adjacencyList.has(from)) {
+            throw new Error(`Вершина ${from} не существует`);
+        }
+        if (!this.adjacencyList.has(to)) {
+            throw new Error(`Вершина ${to} не существует`);
+        }
+
+        // Проверка веса для взвешенного графа
+        if (this.isWeighted) {
+            if (typeof weight !== 'number' || weight <= 0) {
+                throw new Error('Вес ребра должен быть положительным числом');
+            }
+        } else {
+            weight = 1; // игнор веса для невзвешенного графа
+        }
+
+        const fromNeighbors = this.adjacencyList.get(from);
+
+        // Проверка на существующее ребро
+        if (this.isWeighted) {
+            if (fromNeighbors.has(to)) {
+                console.warn(`Ребро ${from} -> ${to} уже существует`);
+                return false;
+            }
+            fromNeighbors.set(to, weight);
+        } else {
+            if (fromNeighbors.has(to)) {
+                console.warn(`Ребро ${from} -> ${to} уже существует`);
+                return false;
+            }
+            fromNeighbors.add(to);
+        }
+
+        // Если граф неориентированный, добавляем обратное ребро
+        if (!this.isDirected && from !== to) {
+            const toNeighbors = this.adjacencyList.get(to);
+            if (this.isWeighted) {
+                toNeighbors.set(from, weight);
+            } else {
+                toNeighbors.add(from);
+            }
+        }
+
+        return true;
+    }
+
+    // Удаление вершины
+    removeVertex(vertex) {
+        if (!this.adjacencyList.has(vertex)) {
+            throw new Error(`Вершина ${vertex} не существует`);
+        }
+
+        // Удаляем все рёбра, ведущие к этой вершине
+        for (const [v, neighbors] of this.adjacencyList) {
+            if (v !== vertex) {
+                if (this.isWeighted) {
+                    neighbors.delete(vertex);
+                } else {
+                    neighbors.delete(vertex);
+                }
+            }
+        }
+
+        // Удаляем саму вершину
+        this.adjacencyList.delete(vertex);
+        return true;
+    }
+
+    // Удаление ребра/дуги
+    removeEdge(from, to) {
+        if (!this.adjacencyList.has(from)) {
+            throw new Error(`Вершина ${from} не существует`);
+        }
+        if (!this.adjacencyList.has(to)) {
+            throw new Error(`Вершина ${to} не существует`);
+        }
+
+        const fromNeighbors = this.adjacencyList.get(from);
+        
+        // Проверка существования ребра
+        if (this.isWeighted) {
+            if (!fromNeighbors.has(to)) {
+                throw new Error(`Ребро ${from} -> ${to} не существует`);
+            }
+            fromNeighbors.delete(to);
+        } else {
+            if (!fromNeighbors.has(to)) {
+                throw new Error(`Ребро ${from} -> ${to} не существует`);
+            }
+            fromNeighbors.delete(to);
+        }
+
+        // Если граф неориентированный, удаляем обратное ребро
+        if (!this.isDirected && from !== to) {
+            const toNeighbors = this.adjacencyList.get(to);
+            if (this.isWeighted) {
+                toNeighbors.delete(from);
+            } else {
+                toNeighbors.delete(from);
+            }
+        }
+
+        return true;
+    }
+
+    // Вывод списка смежности в файл (в формате для конструктора)
+    toFileString() {
+        let result = '';
+        
+        // Добавляем заголовок с типом графа
+        result += this.isDirected ? 'DIRECTED' : 'UNDIRECTED';
+        result += this.isWeighted ? ' WEIGHTED\n' : '\n';
+        
+        // Получаем все вершины и сортируем для удобства чтения
+        const vertices = Array.from(this.adjacencyList.keys()).sort();
+        
+        for (const vertex of vertices) {
+            const neighbors = this.adjacencyList.get(vertex);
+            result += vertex + ':';
+            
+            if (neighbors.size > 0) {
+                const neighborStrings = [];
+                
+                if (this.isWeighted) {
+                    // Для взвешенного графа: сортируем соседей
+                    const sortedNeighbors = Array.from(neighbors.entries())
+                        .sort((a, b) => a[0].localeCompare(b[0]));
+                    
+                    for (const [neighbor, weight] of sortedNeighbors) {
+                        neighborStrings.push(`${neighbor}(${weight})`);
+                    }
+                } else {
+                    // Для невзвешенного графа
+                    const sortedNeighbors = Array.from(neighbors).sort();
+                    neighborStrings.push(...sortedNeighbors);
+                }
+                
+                result += ' ' + neighborStrings.join(' ');
+            }
+            
+            result += '\n';
+        }
+        
+        return result;
+    }
+
+    // Сохранение в файл (для браузера)
+    saveToFile(filename = 'graph.txt') {
+        const content = this.toFileString();
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        
+        URL.revokeObjectURL(url);
     }
 }

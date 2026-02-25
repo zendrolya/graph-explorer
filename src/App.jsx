@@ -1,11 +1,9 @@
+import GraphEditor from "./components/GraphEditor"
+
 
 function App() {
 
-  return (
-    <>
-
-    </>
-  )
+  return (<GraphEditor />)
 }
 
 export default App
