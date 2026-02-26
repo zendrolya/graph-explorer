@@ -1,9 +1,90 @@
 import styles from './GraphEditor.module.css'
 import GraphView from './GraphView'
-import { Graph } from '../core/Graph.js'
+import { initConsoleInterface } from '../core/consoleInterface';
+import {Graph} from "../core/Graph.js";
+import { useState, useEffect, useRef } from 'react';
 
 
 function GraphEditor() {
+    const [graph, setGraph] = useState(() => new Graph({ isDirected: false, isWeighted: false }));
+    const [selectedVertex, setSelectedVertex] = useState(null);
+    const [selectedEdge, setSelectedEdge] = useState(null);
+    const [graphData, setGraphData] = useState({
+        nodes: [],
+        links: [],
+        isDirected: false,
+        isWeighted: false
+    });
+
+    const graphRef = useRef(graph);
+    graphRef.current = graph;
+
+    // Инициализация консольного интерфейса
+    useEffect(() => {
+        const consoleInterface = initConsoleInterface(graph, setGraph);
+
+        // Добавляем функцию для прямого доступа к графу
+        window.graph = graph;
+
+        return () => {
+            // Очищаем глобальные переменные при размонтировании
+            delete window.graphConsole;
+            delete window.gc;
+            delete window.graph;
+        };
+    }, []);
+
+    // Обновление данных для визуализации
+    useEffect(() => {
+        updateGraphData();
+    }, [graph, selectedVertex, selectedEdge]);
+
+    const updateGraphData = () => {
+        const nodes = [];
+        const links = [];
+        const vertices = Array.from(graph.adjacencyList.keys());
+
+        vertices.forEach(vertex => {
+            nodes.push({
+                id: vertex,
+                name: vertex,
+                val: 1,
+                color: selectedVertex === vertex ? '#ff6b6b' : '#4ecdc4'
+            });
+        });
+
+        const edges = graph.toEdgeList();
+        edges.forEach(edge => {
+            const isSelected = selectedEdge &&
+                ((edge.from === selectedEdge.from && edge.to === selectedEdge.to) ||
+                    (!graph.isDirected && edge.from === selectedEdge.to && edge.to === selectedEdge.from));
+
+            links.push({
+                source: edge.from,
+                target: edge.to,
+                weight: edge.weight,
+                color: isSelected ? '#ff6b6b' : '#999',
+                label: graph.isWeighted ? edge.weight.toString() : ''
+            });
+        });
+
+        setGraphData({
+            nodes,
+            links,
+            isDirected: graph.isDirected,
+            isWeighted: graph.isWeighted
+        });
+    };
+
+    const handleVertexClick = (vertex) => {
+        setSelectedVertex(vertex);
+        setSelectedEdge(null);
+    };
+
+    const handleEdgeClick = (edge) => {
+        setSelectedEdge({ from: edge.source.id, to: edge.target.id });
+        setSelectedVertex(null);
+    };
 
     return (
         <>
@@ -47,7 +128,13 @@ function GraphEditor() {
                     <button className={styles.instruments_btn}><img src='/icons/adjacency-list.svg' draggable="false" alt="Вывести список смежности" /></button>
                 </div>
                 <div className={styles.workflow}>
-                    <GraphView />
+                    <GraphView
+                        graphData={graphData}
+                        onVertexClick={handleVertexClick}
+                        onEdgeClick={handleEdgeClick}
+                        selectedVertex={selectedVertex}
+                        selectedEdge={selectedEdge}
+                    />
                 </div>
             </main>
         </>

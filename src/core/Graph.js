@@ -253,4 +253,52 @@ export class Graph {
         
         URL.revokeObjectURL(url);
     }
+
+    // Метод для получения всех вершин
+    getVertices() {
+        return Array.from(this.adjacencyList.keys());
+    }
+
+    // Метод для получения соседей вершины
+    getNeighbors(vertex) {
+        if (!this.adjacencyList.has(vertex)) {
+            throw new Error(`Вершина ${vertex} не существует`);
+        }
+        const neighbors = this.adjacencyList.get(vertex);
+
+        if (this.isWeighted) {
+            return Array.from(neighbors.entries()).map(([v, w]) =>
+                this.isWeighted ? `${v}(${w})` : v
+            );
+        } else {
+            return Array.from(neighbors);
+        }
+    }
+
+    // Проверка существования ребра
+    hasEdge(from, to) {
+        if (!this.adjacencyList.has(from) || !this.adjacencyList.has(to)) {
+            return false;
+        }
+
+        const fromNeighbors = this.adjacencyList.get(from);
+
+        if (this.isWeighted) {
+            return fromNeighbors.has(to);
+        } else {
+            return fromNeighbors.has(to);
+        }
+    }
+
+    // Получение веса ребра
+    getEdgeWeight(from, to) {
+        if (!this.hasEdge(from, to)) {
+            return null;
+        }
+
+        if (this.isWeighted) {
+            return this.adjacencyList.get(from).get(to);
+        }
+        return 1;
+    }
 }
