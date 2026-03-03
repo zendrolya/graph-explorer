@@ -37,7 +37,8 @@
 .add_button:hover,
 .delete_button:hover,
 .save_button:hover,
-.load_button:hover {
+.load_button:hover,
+.header_summary:hover {
     color: #000;
 }
 
@@ -75,6 +76,7 @@ details[open] summary:after {
     top: 150%;
     left: -25px;
     background-color: green;
+    z-index: 1;
 }
 
 .methods_list li {
@@ -84,6 +86,12 @@ details[open] summary:after {
 .methods_list li:hover {
     background-color: #90EE90;
     color: #000;
+}
+
+/* === Fullscreen mode === */
+
+.main_container {
+    background-color: #33664E;
 }
 
 .fullscreen_btn {
@@ -132,10 +140,4 @@ details[open] summary:after {
 
 .instruments_btn:hover {
     background-color: #92FFCC;
-}
-
-.workflow {
-    width: 100%;
-    background-color: #fff;
-    border: 1px solid black;
 }

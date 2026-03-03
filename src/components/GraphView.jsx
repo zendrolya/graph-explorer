@@ -25,7 +25,6 @@ function GraphView({ graphData, onVertexClick, onEdgeClick, selectedVertex, sele
 
     useEffect(() => {
         if (graphRef.current && graphData.nodes.length > 0) {
-            // Центрируем граф при изменении данных
             graphRef.current.d3Force('charge').strength(-100);
             graphRef.current.d3ReheatSimulation();
         }
@@ -44,7 +43,6 @@ function GraphView({ graphData, onVertexClick, onEdgeClick, selectedVertex, sele
         const fontSize = 12 / globalScale;
         ctx.font = `${fontSize}px Sans-Serif`;
 
-        // Рисуем круг
         ctx.beginPath();
         ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
         ctx.fillStyle = node.color || '#4ecdc4';
@@ -111,7 +109,7 @@ function GraphView({ graphData, onVertexClick, onEdgeClick, selectedVertex, sele
                     cooldownTicks={100}
                     width={dimensions.width}
                     height={dimensions.height}
-                    backgroundColor="#f5f5f5"
+                    backgroundColor="#fff"
                 />
             )}
         </div>

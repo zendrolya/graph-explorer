@@ -1,8 +1,10 @@
 UNDIRECTED
-A: B C
-B: A D
-C: A E
-D: B
-E: C
-F:   # изолированная
-G: G # петля
+Alice: Bob Charlie David
+Bob: Alice Eve
+Charlie: Alice Frank
+David: Alice Grace
+Eve: Bob
+Frank: Charlie
+Grace: David
+Henry: 
+Isabella: Isabella
