@@ -1,8 +1,11 @@
 DIRECTED WEIGHTED
-A: B(2) C(5)
-B: D(3)
-C: E(1)
-D:
-E: E(4)  # петля с весом
-F: A(7)
-G:
+StationA: StationB(3) StationC(5)
+StationB: StationD(2) StationE(4)
+StationC: StationE(3) StationF(6)
+StationD: StationG(4)
+StationE: StationG(2) StationH(3)
+StationF: StationH(5) StationI(4)
+StationG: StationJ(3)
+StationH: StationJ(4)
+StationI: 
+StationJ: StationA(7)

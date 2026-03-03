@@ -1,3 +1,11 @@
 UNDIRECTED WEIGHTED
-A: B(2) C(5)
-B: A(2) D(3)
+CityA: CityB(10) CityC(15) CityD(20)
+CityB: CityA(10) CityE(12) CityF(8)
+CityC: CityA(15) CityE(7) CityG(9)
+CityD: CityA(20) CityF(6) CityH(14)
+CityE: CityB(12) CityC(7) CityI(11)
+CityF: CityB(8) CityD(6) CityJ(5)
+CityG: CityC(9) CityH(4)
+CityH: CityD(14) CityG(4) CityI(3) CityJ(8)
+CityI: CityE(11) CityH(3)
+CityJ: CityF(5) CityH(8) CityJ(2)

@@ -34,28 +34,6 @@ class ConsoleGraphInterface {
         this.execute = this.execute.bind(this);
     }
 
-    execute(commandLine) {
-        const parts = commandLine.trim().split(/\s+/);
-        const command = parts[0].toLowerCase();
-        const args = parts.slice(1);
-
-        if (command === '') return;
-
-        if (this.commands[command]) {
-            try {
-                const result = this.commands[command](...args);
-                if (result !== undefined) {
-                    console.log(result);
-                }
-            } catch (error) {
-                console.error('❌ Ошибка:', error.message);
-            }
-        } else {
-            console.log(`❌ Неизвестная команда: ${command}`);
-            console.log('💡 Введите "help" для списка команд');
-        }
-    }
-
     showHelp() {
         console.log(`
 ╔══════════════════════════════════════════════════════════════════════╗
@@ -423,11 +401,11 @@ export function initConsoleInterface(graph, setGraph) {
 ╔══════════════════════════════════════════════════════════╗
 ║  🔧 КОНСОЛЬНЫЙ ИНТЕРФЕЙС ГРАФА ЗАГРУЖЕН                 ║
 ╠══════════════════════════════════════════════════════════╣
-║  📝 КОМАНДЫ:                                             ║
+║  📝 КОМАНДЫ:                                            ║
 ║    gc.execute('help')    - показать справку              ║
 ║    gc.execute('команда') - выполнить команду             ║
 ║                                                          ║
-║  🚀 БЫСТРЫЕ ПРИМЕРЫ:                                     ║
+║  🚀 БЫСТРЫЕ ПРИМЕРЫ:                                    ║
 ║    gc.execute('newGraph directed weighted')              ║
 ║    gc.execute('addVertex A')                             ║
 ║    gc.execute('addEdge A B 5')                           ║

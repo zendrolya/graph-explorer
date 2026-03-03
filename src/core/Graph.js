@@ -301,4 +301,42 @@ export class Graph {
         }
         return 1;
     }
+
+    loadFromString(content) {
+        const lines = content.split('\n').filter(line => line.trim() !== '');
+        
+        for (const line of lines) {
+            // Пропускаем строки с опциями, если они есть в файле
+            if (line.startsWith('DIRECTED') || line.startsWith('UNDIRECTED')) continue;
+            
+            const [vertexPart, neighborsPart] = line.split(':').map(s => s.trim());
+            if (!vertexPart) continue;
+            
+            const vertex = vertexPart;
+            
+            // Добавляем вершину, если её нет
+            if (!this.adjacencyList.has(vertex)) {
+                this.addVertex(vertex);
+            }
+            
+            // Обрабатываем соседей
+            if (neighborsPart && neighborsPart !== '') {
+                const neighbors = neighborsPart.split(/\s+/);
+                
+                for (const neighbor of neighbors) {
+                    if (neighbor === '') continue;
+                    
+                    // Проверяем, есть ли вес (формат: вершина(вес))
+                    const match = neighbor.match(/(\w+)\((\d+)\)/);
+                    
+                    if (match && this.isWeighted) {
+                        const [_, neighborVertex, weight] = match;
+                        this.addEdge(vertex, neighborVertex, parseInt(weight));
+                    } else {
+                        this.addEdge(vertex, neighbor, 1);
+                    }
+                }
+            }
+        }
+    }
 }

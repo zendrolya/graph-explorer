@@ -1,2 +1,20 @@
 DIRECTED
-A: B C
+html: head body
+head: meta title link
+meta: 
+title: 
+link: 
+body: header nav main footer
+header: logo nav
+nav: a a a
+main: section aside
+section: h1 p p
+aside: h2 ul
+footer: p
+p: 
+h1: 
+h2: 
+ul: li li li
+li: a
+a: 
+logo: 
