@@ -1,9 +1,7 @@
-import GraphEditor from "./components/GraphEditor"
-
+import GraphEditor from "./components/GraphEditor/GraphEditor";
 
 function App() {
-
-  return (<GraphEditor />)
+  return <GraphEditor />;
 }
 
-export default App
+export default App;
