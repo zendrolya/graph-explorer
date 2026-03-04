@@ -1,5 +1,5 @@
 import styles from "./GraphEditor.module.css";
-import GraphView from "../GraphView.jsx";
+import GraphView from "../GraphView/GraphView.jsx";
 import ConsoleManager from "../../core/ConsoleManager.js";
 import { Graph } from "../../core/Graph.js";
 import { useState, useEffect, useRef } from "react";

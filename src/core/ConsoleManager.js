@@ -16,10 +16,13 @@ class ConsoleManager {
 
     // Список доступных тестовых файлов
     this.testFiles = [
-      { name: "Социальная сеть", file: "undirected_social.txt" },
-      { name: "Карта метро", file: "directed_subway.txt" },
-      { name: "Сеть дорог", file: "undirected_roads.txt" },
-      { name: "HTML структура", file: "directed_html.txt" },
+      {
+        name: "Социальная сеть",
+        file: "undirected_unweighted.txt",
+      },
+      { name: "Карта метро", file: "directed_weighted.txt" },
+      { name: "Сеть дорог", file: "undirected_weighted.txt" },
+      { name: "HTML структура", file: "directed_unweighted.txt" },
     ];
 
     this.bindCommands();
@@ -31,6 +34,7 @@ class ConsoleManager {
 
     // Основные команды
     window.createGraph = this.createGraph.bind(this);
+    window.copyGraph = this.copyGraph.bind(this);
     window.listGraphs = this.listGraphs.bind(this);
     window.switchGraph = this.switchGraph.bind(this);
     window.deleteGraph = this.deleteGraph.bind(this);
@@ -44,6 +48,10 @@ class ConsoleManager {
     window.showVertices = this.showVertices.bind(this);
     window.showEdges = this.showEdges.bind(this);
 
+    // НОВЫЕ МЕТОДЫ
+    window.vertexDegree = this.vertexDegree.bind(this);
+    window.nonAdjacentVertices = this.nonAdjacentVertices.bind(this);
+
     // Команды для работы с файлами
     window.loadExample = this.loadExample.bind(this);
     window.saveGraph = this.saveGraph.bind(this);
@@ -55,36 +63,32 @@ class ConsoleManager {
   printWelcomeMessage() {
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════╗
-║              КОНСОЛЬНЫЙ ИНТЕРФЕЙС УПРАВЛЕНИЯ ГРАФАМИ                ║
+║              КОНСОЛЬНЫЙ ИНТЕРФЕЙС УПРАВЛЕНИЯ ГРАФАМИ                 ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║  Доступные команды:                                                  ║
 ║                                                                      ║
 ║  📋 УПРАВЛЕНИЕ ГРАФАМИ:                                              ║
-║    help()                                   - показать эту справку  ║
-║    createGraph(имя, directed, weighted)     - создать новый граф    ║
-║    listGraphs()                              - список всех графов   ║
-║    switchGraph(имя)                          - переключиться на граф║
-║    deleteGraph(имя)                          - удалить граф         ║
+║    help()                                   - показать эту справку   ║
+║    createGraph(имя, directed, weighted)     - создать новый граф     ║
+║    copyGraph(исходное_имя, новое_имя)       - скопировать граф       ║
+║    listGraphs()                              - список всех графов    ║
+║    switchGraph(имя)                          - переключиться на граф ║
+║    deleteGraph(имя)                          - удалить граф          ║
 ║                                                                      ║
-║  🔧 РАБОТА С ТЕКУЩИМ ГРАФОМ:                                         ║
-║    addVertex(вершина)                        - добавить вершину     ║
-║    addEdge(от, к, [вес])                     - добавить ребро       ║
-║    removeVertex(вершина)                      - удалить вершину     ║
-║    removeEdge(от, к)                          - удалить ребро       ║
-║    showGraph()                               - показать граф        ║
-║    showVertices()                             - показать вершины    ║
-║    showEdges()                                - показать рёбра      ║
+║  🔧 РАБОТА С ТЕКУЩИМ ГРАФОМ:                                        ║
+║    addVertex(вершина)                        - добавить вершину      ║
+║    addEdge(от, к, [вес])                     - добавить ребро        ║
+║    removeVertex(вершина)                      - удалить вершину      ║
+║    removeEdge(от, к)                          - удалить ребро        ║
+║    showGraph()                               - показать граф         ║
+║    showVertices()                             - показать вершины     ║
+║    showEdges()                                - показать рёбра       ║
+║    vertexDegree([вершина])                    - степень вершины      ║
+║    nonAdjacentVertices(вершина)               - вершины, не смежные с║
 ║                                                                      ║
 ║  📁 РАБОТА С ФАЙЛАМИ:                                                ║
-║    loadExample(номер)                         - загрузить пример    ║
-║    saveGraph([имя_файла])                     - сохранить в файл    ║
-║                                                                      ║
-║  Примеры:                                                            ║
-║    createGraph('Мой граф', true, true)        - ориентир. взвешенный║
-║    loadExample(1)                             - соц. сеть          ║
-║    addVertex('A')                                                     ║
-║    addEdge('A', 'B', 5)                                              ║
-║    showGraph()                                                       ║
+║    loadExample(номер)                         - загрузить пример     ║
+║    saveGraph([имя_файла])                     - сохранить в файл     ║
 ╚══════════════════════════════════════════════════════════════════════╝
         `);
 
@@ -129,26 +133,52 @@ class ConsoleManager {
 
   // Копирование графа
   copyGraph(sourceName, newName) {
+    // Проверка наличия исходного графа
+    if (!sourceName || typeof sourceName !== "string") {
+      console.error("❌ Ошибка: укажите имя исходного графа");
+      return;
+    }
+
     const sourceGraph = this.graphs.find((g) => g.name === sourceName);
 
     if (!sourceGraph) {
       console.error(`❌ Ошибка: граф "${sourceName}" не найден`);
+      this.listGraphs();
+      return;
+    }
+
+    // Проверка нового имени
+    if (!newName || typeof newName !== "string") {
+      console.error("❌ Ошибка: укажите имя для нового графа");
       return;
     }
 
     if (!this.isGraphNameUnique(newName)) {
       console.error(`❌ Ошибка: граф с именем "${newName}" уже существует`);
+      this.listGraphs();
       return;
     }
 
-    const newGraph = Graph.fromGraph(sourceGraph);
-    newGraph.setName(newName);
+    try {
+      const newGraph = Graph.fromGraph(sourceGraph);
 
-    this.setGraphs([...this.graphs, newGraph]);
-    this.setCurrentGraph(newGraph);
-    this.updateGraphData(newGraph);
+      newGraph.setName(newName);
 
-    console.log(`✅ Создана копия графа "${sourceName}" с именем "${newName}"`);
+      this.setGraphs([...this.graphs, newGraph]);
+
+      this.setCurrentGraph(newGraph);
+      this.updateGraphData(newGraph);
+
+      console.log(`✅ Граф "${sourceName}" успешно скопирован в "${newName}"`);
+      console.log(
+        `   Тип: ${newGraph.isDirected ? "ориентированный" : "неориентированный"}, ${newGraph.isWeighted ? "взвешенный" : "невзвешенный"}`,
+      );
+      console.log(
+        `   Вершин: ${newGraph.getVertices().length}, Рёбер: ${newGraph.toEdgeList().length}`,
+      );
+    } catch (error) {
+      console.error(`❌ Ошибка при копировании графа: ${error.message}`);
+    }
   }
 
   // Список всех графов
@@ -357,6 +387,160 @@ class ConsoleManager {
     }
   }
 
+  // Степень вершины
+  vertexDegree(vertex) {
+    if (!this.currentGraph) {
+      console.error("❌ Ошибка: сначала создайте или выберите граф");
+      return;
+    }
+
+    try {
+      if (vertex) {
+        // Степень конкретной вершины
+        if (!this.currentGraph.adjacencyList.has(vertex)) {
+          console.error(`❌ Ошибка: вершина "${vertex}" не существует`);
+          return;
+        }
+
+        const neighbors = this.currentGraph.adjacencyList.get(vertex);
+        let degree = neighbors.size;
+
+        // Для ориентированных графов нужно учитывать входящие рёбра
+        if (this.currentGraph.isDirected) {
+          // Считаем входящие рёбра (полустепень захода)
+          let inDegree = 0;
+          for (const [v, n] of this.currentGraph.adjacencyList) {
+            if (v !== vertex) {
+              if (this.currentGraph.isWeighted) {
+                if (n.has(vertex)) inDegree++;
+              } else {
+                if (n.has(vertex)) inDegree++;
+              }
+            }
+          }
+
+          console.log(
+            `\n📊 Степени вершины "${vertex}" в графе "${this.currentGraph.name}":`,
+          );
+          console.log(`   Полустепень исхода (out-degree): ${degree}`);
+          console.log(`   Полустепень захода (in-degree): ${inDegree}`);
+          console.log(`   Полная степень: ${degree + inDegree}`);
+        } else {
+          // Для неориентированного графа
+          console.log(
+            `\n📊 Степень вершины "${vertex}" в графе "${this.currentGraph.name}": ${degree}`,
+          );
+        }
+      } else {
+        // Степени всех вершин
+        console.log(
+          `\n📊 СТЕПЕНИ ВСЕХ ВЕРШИН графа "${this.currentGraph.name}":`,
+        );
+
+        const vertices = this.currentGraph.getVertices().sort();
+
+        if (this.currentGraph.isDirected) {
+          // Для ориентированного графа
+          console.log("   Вершина | Исход | Заход | Полная");
+          console.log("   ---------|-------|-------|--------");
+
+          vertices.forEach((v) => {
+            const outDegree = this.currentGraph.adjacencyList.get(v).size;
+
+            // Считаем входящие рёбра
+            let inDegree = 0;
+            for (const [u, neighbors] of this.currentGraph.adjacencyList) {
+              if (u !== v) {
+                if (this.currentGraph.isWeighted) {
+                  if (neighbors.has(v)) inDegree++;
+                } else {
+                  if (neighbors.has(v)) inDegree++;
+                }
+              }
+            }
+
+            console.log(
+              `   ${v.padEnd(7)} | ${outDegree.toString().padEnd(5)} | ${inDegree.toString().padEnd(5)} | ${outDegree + inDegree}`,
+            );
+          });
+        } else {
+          // Для неориентированного графа
+          vertices.forEach((v) => {
+            const degree = this.currentGraph.adjacencyList.get(v).size;
+            console.log(`   ${v}: ${degree}`);
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  // Вершины, не смежные с данной
+  nonAdjacentVertices(vertex) {
+    if (!this.currentGraph) {
+      console.error("❌ Ошибка: сначала создайте или выберите граф");
+      return;
+    }
+
+    if (!vertex) {
+      console.error("❌ Ошибка: укажите вершину");
+      return;
+    }
+
+    try {
+      if (!this.currentGraph.adjacencyList.has(vertex)) {
+        console.error(`❌ Ошибка: вершина "${vertex}" не существует`);
+        return;
+      }
+
+      const allVertices = this.currentGraph.getVertices();
+      const neighbors = this.currentGraph.adjacencyList.get(vertex);
+
+      // Для ориентированных графов учитываем только исходящие связи?
+      // По умолчанию считаем "не смежные" - те, с которыми нет ребра в обе стороны
+      const neighborSet = new Set();
+
+      if (this.currentGraph.isWeighted) {
+        for (const [v, _] of neighbors) {
+          neighborSet.add(v);
+        }
+      } else {
+        for (const v of neighbors) {
+          neighborSet.add(v);
+        }
+      }
+
+      // Находим вершины, не являющиеся соседями (и не сама вершина)
+      const nonAdjacent = allVertices.filter(
+        (v) => v !== vertex && !neighborSet.has(v),
+      );
+
+      if (nonAdjacent.length === 0) {
+        console.log(
+          `\n🔍 Все вершины смежны с "${vertex}" в графе "${this.currentGraph.name}"`,
+        );
+      } else {
+        console.log(
+          `\n🔍 Вершины, НЕ смежные с "${vertex}" в графе "${this.currentGraph.name}":`,
+        );
+        console.log(`   ${nonAdjacent.join(", ")} (${nonAdjacent.length} шт.)`);
+      }
+
+      // Для справки показываем также смежные вершины
+      if (neighborSet.size > 0) {
+        const adjacent = Array.from(neighborSet).sort();
+        console.log(
+          `\n   Смежные вершины: ${adjacent.join(", ")} (${adjacent.length} шт.)`,
+        );
+      } else {
+        console.log(`\n   Смежных вершин нет`);
+      }
+    } catch (error) {
+      console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
   // Загрузка примера
   async loadExample(index) {
     const idx = parseInt(index) - 1;
@@ -373,16 +557,23 @@ class ConsoleManager {
     }
 
     try {
-      const response = await fetch(`/${this.testFiles[idx].file}`);
+      const response = await fetch(`/examples/${this.testFiles[idx].file}`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Файл не найден: /examples/${this.testFiles[idx].file}`,
+        );
+      }
+
       const content = await response.text();
 
-      // Определяем тип графа из содержимого
-      const lines = content.split("\n");
-      const firstLine = lines[0].trim();
-      const isDirected = firstLine.includes("DIRECTED");
-      const isWeighted = firstLine.includes("WEIGHTED");
+      // Создаём новый граф (параметры будут определены из файла)
+      const newGraph = new Graph();
 
-      // Создаём уникальное имя
+      // Загружаем содержимое
+      newGraph.loadFromFileContent(content);
+
+      // Создаём уникальное имя, если нужно
       let graphName = this.testFiles[idx].name;
       let counter = 1;
       while (!this.isGraphNameUnique(graphName)) {
@@ -390,17 +581,19 @@ class ConsoleManager {
         counter++;
       }
 
-      const newGraph = new Graph({ isDirected, isWeighted, name: graphName });
-      newGraph.loadFromFileContent(content);
+      // Устанавливаем имя
+      newGraph.name = graphName;
 
+      // Добавляем граф в список
       this.setGraphs([...this.graphs, newGraph]);
       this.setCurrentGraph(newGraph);
       this.updateGraphData(newGraph);
 
       console.log(`✅ Загружен пример: "${graphName}"`);
       console.log(
-        `   Тип: ${isDirected ? "ориентированный" : "неориентированный"}, ${isWeighted ? "взвешенный" : "невзвешенный"}`,
+        `   Тип: ${newGraph.isDirected ? "ориентированный" : "неориентированный"}, ${newGraph.isWeighted ? "взвешенный" : "невзвешенный"}`,
       );
+      console.log(`   Вершин: ${newGraph.getVertices().length}`);
       this.showGraph();
     } catch (error) {
       console.error(`❌ Ошибка загрузки файла: ${error.message}`);

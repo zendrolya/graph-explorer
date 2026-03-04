@@ -97,14 +97,20 @@ export class Graph {
   */
 
   toEdgeList() {
-    // метод создания списка ребер
     const edges = [];
 
     for (const [from, neighbors] of this.adjacencyList) {
-      for (const [to, weight] of neighbors) {
-        // Для неориентированных графов избегаем дублирования
-        if (this.isDirected || from <= to) {
-          edges.push({ from, to, weight });
+      if (this.isWeighted) {
+        for (const [to, weight] of neighbors.entries()) {
+          if (this.isDirected || from <= to) {
+            edges.push({ from, to, weight });
+          }
+        }
+      } else {
+        for (const to of neighbors.values()) {
+          if (this.isDirected || from <= to) {
+            edges.push({ from, to, weight: 1 });
+          }
         }
       }
     }
@@ -391,22 +397,24 @@ export class Graph {
   loadFromFileContent(content, graphName = null) {
     const lines = content.split("\n").filter((line) => line.trim() !== "");
 
-    // Сначала определяем тип графа из первой строки
+    // Сбрасываем граф
+    this.adjacencyList.clear();
+
+    if (lines.length === 0) return;
+
+    // Определяем тип графа
     const firstLine = lines[0].trim();
-    if (firstLine.includes("DIRECTED")) {
-      this.isDirected = true;
-    }
-    if (firstLine.includes("WEIGHTED")) {
-      this.isWeighted = true;
-    }
 
-    for (const line of lines) {
-      // Пропускаем строки с опциями
-      if (line.startsWith("DIRECTED") || line.startsWith("UNDIRECTED")) {
-        continue;
-      }
+    this.isDirected = firstLine.includes("DIRECTED");
+    this.isWeighted = firstLine.includes("WEIGHTED");
 
-      // Проверяем, не является ли строка комментарием с названием
+    // Обрабатываем строки начиная со 2
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (!line) continue;
+
+      // Комментарий с названием
       if (line.startsWith("# ")) {
         this.name = line.substring(2).trim();
         continue;
@@ -417,34 +425,45 @@ export class Graph {
 
       const vertex = vertexPart;
 
-      // Добавляем вершину, если её нет
+      // ✅ создаём вершину если её нет
       if (!this.adjacencyList.has(vertex)) {
         this.addVertex(vertex);
       }
 
-      // Обрабатываем соседей
-      if (neighborsPart && neighborsPart !== "") {
+      if (neighborsPart) {
         const neighbors = neighborsPart.split(/\s+/);
 
         for (const neighbor of neighbors) {
-          if (neighbor === "") continue;
+          if (!neighbor) continue;
 
-          // Проверяем, есть ли вес (формат: вершина(вес))
           const match = neighbor.match(/(\w+)\((\d+)\)/);
 
-          if (match && this.isWeighted) {
-            const [_, neighborVertex, weight] = match;
-            this.addEdge(vertex, neighborVertex, parseInt(weight));
-          } else if (!this.isWeighted) {
-            this.addEdge(vertex, neighbor, 1);
+          let neighborVertex;
+          let weight = 1;
+
+          if (match) {
+            neighborVertex = match[1];
+            weight = this.isWeighted ? parseInt(match[2]) : 1;
+          } else {
+            neighborVertex = neighbor;
           }
+
+          // ✅ создаём соседа если его нет
+          if (!this.adjacencyList.has(neighborVertex)) {
+            this.addVertex(neighborVertex);
+          }
+
+          this.addEdge(vertex, neighborVertex, weight);
         }
       }
     }
 
-    // Если передано имя графа, используем его
     if (graphName) {
       this.name = graphName;
+    }
+
+    if (!this.name) {
+      this.name = "Загруженный граф";
     }
   }
 }
