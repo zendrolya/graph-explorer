@@ -78,8 +78,7 @@ function GraphView({
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
 
-    const weight = link.weight || 1;
-    ctx.lineWidth = Math.max(1, weight / (2 / globalScale));
+    ctx.lineWidth = 2 / globalScale;
 
     const isSelected =
       selectedEdge &&
@@ -93,13 +92,45 @@ function GraphView({
     ctx.strokeStyle = isSelected ? "#ff6b6b" : link.color || "#EF9312";
     ctx.stroke();
 
+    if (link.source.id === link.target.id) {
+      const node = link.source;
+
+      const r = 18;
+
+      ctx.beginPath();
+      ctx.arc(node.x, node.y - r, r, 0, 2 * Math.PI);
+
+      ctx.strokeStyle = link.color || "#EF9312";
+      ctx.lineWidth = 2 / globalScale;
+      ctx.stroke();
+
+      if (graphData?.isWeighted && link.label) {
+        ctx.font = `${10 / globalScale}px Sans-Serif`;
+        ctx.fillStyle = "#333";
+        ctx.fillText(link.label, node.x, node.y - r * 2);
+      }
+
+      return;
+    }
+
     if (graphData?.isWeighted && link.label && globalScale > 0.5) {
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+
       const midX = (start.x + end.x) / 2;
       const midY = (start.y + end.y) / 2;
 
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      const offset = graphData.isDirected ? 8 / globalScale : 0;
+
+      const offsetX = (-dy / len) * offset;
+      const offsetY = (dx / len) * offset;
+
       ctx.font = `${10 / globalScale}px Sans-Serif`;
       ctx.fillStyle = "#333";
-      ctx.fillText(link.label, midX, midY - 5 / globalScale);
+
+      ctx.fillText(link.label, midX + offsetX, midY + offsetY);
     }
   };
 

@@ -49,7 +49,6 @@ export class Graph {
   }
 
   static fromGraph(otherGraph) {
-    // копирующий конструктор
     const graph = new Graph({
       isDirected: otherGraph.isDirected,
       isWeighted: otherGraph.isWeighted,
@@ -57,12 +56,23 @@ export class Graph {
     });
 
     for (const [vertex, neighbors] of otherGraph.adjacencyList) {
-      const neighborsCopy = new Map();
-      for (const [neighbor, weight] of neighbors) {
-        neighborsCopy.set(neighbor, weight);
+      if (otherGraph.isWeighted) {
+        const neighborsCopy = new Map();
+        for (const [neighbor, weight] of neighbors.entries()) {
+          neighborsCopy.set(neighbor, weight);
+        }
+
+        graph.adjacencyList.set(vertex, neighborsCopy);
+      } else {
+        const neighborsCopy = new Set();
+        for (const neighbor of neighbors.values()) {
+          neighborsCopy.add(neighbor);
+        }
+
+        graph.adjacencyList.set(vertex, neighborsCopy);
       }
-      graph.adjacencyList.set(vertex, neighborsCopy);
     }
+
     return graph;
   }
 
