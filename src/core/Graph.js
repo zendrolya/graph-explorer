@@ -63,7 +63,6 @@ export class Graph {
       }
       graph.adjacencyList.set(vertex, neighborsCopy);
     }
-
     return graph;
   }
 
@@ -282,7 +281,6 @@ export class Graph {
 
       result += "\n";
     }
-
     return result;
   }
 

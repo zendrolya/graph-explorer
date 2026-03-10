@@ -161,7 +161,6 @@ class ConsoleManager {
 
     try {
       const newGraph = Graph.fromGraph(sourceGraph);
-
       newGraph.setName(newName);
 
       this.setGraphs([...this.graphs, newGraph]);
