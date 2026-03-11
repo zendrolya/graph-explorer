@@ -474,4 +474,187 @@ export class Graph {
       this.name = "Загруженный граф";
     }
   }
+
+  // Удаление дуг без противоположных
+  buildMutualEdgeGraph() {
+    if (!this.isDirected) {
+      throw new Error("Метод применим только к ориентированному графу");
+    }
+
+    const result = new Graph({
+      isDirected: true,
+      isWeighted: this.isWeighted,
+      name: this.name + "_mutual",
+    });
+
+    const vertices = this.getVertices();
+
+    for (const v of vertices) {
+      result.addVertex(v);
+    }
+
+    for (const [from, neighbors] of this.adjacencyList) {
+      if (this.isWeighted) {
+        for (const [to, weight] of neighbors.entries()) {
+          if (
+            this.adjacencyList.has(to) &&
+            this.adjacencyList.get(to).has(from)
+          ) {
+            result.addEdge(from, to, weight);
+          }
+        }
+      } else {
+        for (const to of neighbors.values()) {
+          if (
+            this.adjacencyList.has(to) &&
+            this.adjacencyList.get(to).has(from)
+          ) {
+            result.addEdge(from, to);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  // Сильно связные компоненты https://habr.com/ru/articles/537290/
+  findStronglyConnectedComponents() {
+    if (!this.isDirected) {
+      throw new Error("SCC определены только для ориентированных графов");
+    }
+
+    const visited = new Set();
+    const stack = [];
+
+    const dfs1 = (v) => {
+      visited.add(v);
+
+      const neighbors = this.adjacencyList.get(v);
+
+      for (const n of this.isWeighted ? neighbors.keys() : neighbors.values()) {
+        if (!visited.has(n)) {
+          dfs1(n);
+        }
+      }
+
+      stack.push(v);
+    };
+
+    for (const v of this.getVertices()) {
+      if (!visited.has(v)) {
+        dfs1(v);
+      }
+    }
+
+    const transpose = this.getTranspose();
+
+    const visited2 = new Set();
+    const components = [];
+
+    const dfs2 = (v, component) => {
+      visited2.add(v);
+      component.push(v);
+
+      const neighbors = transpose.adjacencyList.get(v);
+
+      for (const n of transpose.isWeighted
+        ? neighbors.keys()
+        : neighbors.values()) {
+        if (!visited2.has(n)) {
+          dfs2(n, component);
+        }
+      }
+    };
+
+    while (stack.length) {
+      const v = stack.pop();
+
+      if (!visited2.has(v)) {
+        const component = [];
+        dfs2(v, component);
+        components.push(component);
+      }
+    }
+
+    return components;
+  }
+
+  // транспонирование графа
+  getTranspose() {
+    const g = new Graph({
+      isDirected: true,
+      isWeighted: this.isWeighted,
+    });
+
+    for (const v of this.getVertices()) {
+      g.addVertex(v);
+    }
+
+    for (const [from, neighbors] of this.adjacencyList) {
+      if (this.isWeighted) {
+        for (const [to, weight] of neighbors.entries()) {
+          g.addEdge(to, from, weight);
+        }
+      } else {
+        for (const to of neighbors.values()) {
+          g.addEdge(to, from);
+        }
+      }
+    }
+
+    return g;
+  }
+
+  // Кратчайшие пути до вершины u
+  shortestPathsTo(u) {
+    if (!this.adjacencyList.has(u)) {
+      throw new Error("Вершина не существует");
+    }
+
+    const transpose = this.getTranspose();
+
+    const queue = [u];
+    const visited = new Set([u]);
+    const dist = {};
+    const parent = {};
+
+    dist[u] = 0;
+    parent[u] = null;
+
+    while (queue.length) {
+      const v = queue.shift();
+      const neighbors = transpose.adjacencyList.get(v);
+
+      for (const n of transpose.isWeighted
+        ? neighbors.keys()
+        : neighbors.values()) {
+        if (!visited.has(n)) {
+          visited.add(n);
+          dist[n] = dist[v] + 1;
+          parent[n] = v;
+
+          queue.push(n);
+        }
+      }
+    }
+
+    return { dist, parent };
+  }
+
+  buildPath(parent, start, end) {
+    const path = [];
+    let cur = start;
+
+    while (cur !== null) {
+      path.push(cur);
+      cur = parent[cur];
+    }
+
+    path.reverse();
+
+    if (path[0] !== end) return null;
+
+    return path;
+  }
 }

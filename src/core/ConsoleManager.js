@@ -51,6 +51,10 @@ class ConsoleManager {
     // НОВЫЕ МЕТОДЫ
     window.vertexDegree = this.vertexDegree.bind(this);
     window.nonAdjacentVertices = this.nonAdjacentVertices.bind(this);
+    window.mutualEdgesGraph = this.mutualEdgesGraph.bind(this);
+    window.stronglyConnectedComponents =
+      this.stronglyConnectedComponents.bind(this);
+    window.shortestPathsTo = this.shortestPathsTo.bind(this);
 
     // Команды для работы с файлами
     window.loadExample = this.loadExample.bind(this);
@@ -85,6 +89,9 @@ class ConsoleManager {
 ║    showEdges()                                - показать рёбра       ║
 ║    vertexDegree([вершина])                    - степень вершины      ║
 ║    nonAdjacentVertices(вершина)               - вершины, не смежные с║
+║    mutualEdgesGraph()                 - оставить только взаимные дуги║
+║    stronglyConnectedComponents()       - сильно связные компоненты   ║
+║    shortestPathsTo(вершина)            - кратчайшие пути до вершины  ║
 ║                                                                      ║
 ║  📁 РАБОТА С ФАЙЛАМИ:                                                ║
 ║    loadExample(номер)                         - загрузить пример     ║
@@ -534,6 +541,105 @@ class ConsoleManager {
         );
       } else {
         console.log(`\n   Смежных вершин нет`);
+      }
+    } catch (error) {
+      console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  mutualEdgesGraph() {
+    if (!this.currentGraph) {
+      console.error("❌ Ошибка: сначала создайте или выберите граф");
+      return;
+    }
+
+    if (!this.currentGraph.isDirected) {
+      console.error("❌ Метод применим только к ориентированным графам");
+      return;
+    }
+
+    try {
+      const newGraph = this.currentGraph.buildMutualEdgeGraph();
+
+      let name = this.currentGraph.name + "_mutual";
+      let counter = 1;
+
+      while (!this.isGraphNameUnique(name)) {
+        name = this.currentGraph.name + "_mutual_" + counter;
+        counter++;
+      }
+
+      newGraph.name = name;
+
+      this.setGraphs([...this.graphs, newGraph]);
+      this.setCurrentGraph(newGraph);
+      this.updateGraphData(newGraph);
+
+      console.log(`✅ Создан граф взаимных дуг: "${name}"`);
+      this.showGraph();
+    } catch (error) {
+      console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  stronglyConnectedComponents() {
+    if (!this.currentGraph) {
+      console.error("❌ Ошибка: сначала создайте или выберите граф");
+      return;
+    }
+
+    if (!this.currentGraph.isDirected) {
+      console.error("❌ SCC определены только для ориентированных графов");
+      return;
+    }
+
+    try {
+      const components = this.currentGraph.findStronglyConnectedComponents();
+
+      console.log(
+        `\n📊 СИЛЬНО СВЯЗНЫЕ КОМПОНЕНТЫ графа "${this.currentGraph.name}":`,
+      );
+
+      components.forEach((comp, i) => {
+        console.log(`  ${i + 1}. ${comp.join(", ")}`);
+      });
+
+      console.log(`Всего компонент: ${components.length}`);
+    } catch (error) {
+      console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  shortestPathsTo(vertex) {
+    if (!this.currentGraph) {
+      console.error("❌ Ошибка: сначала создайте или выберите граф");
+      return;
+    }
+
+    if (!vertex) {
+      console.error("❌ Укажите вершину");
+      return;
+    }
+
+    try {
+      const { dist, parent } = this.currentGraph.shortestPathsTo(vertex);
+
+      console.log(
+        `\n📊 КРАТЧАЙШИЕ ПУТИ ДО ВЕРШИНЫ "${vertex}" в графе "${this.currentGraph.name}":`,
+      );
+
+      for (const v in dist) {
+        const path = [];
+        let cur = v;
+
+        while (cur !== null) {
+          path.push(cur);
+          cur = parent[cur];
+        }
+
+        path.reverse();
+
+        console.log(`${v} → ${vertex}: ${path.join(" → ")}`);
       }
     } catch (error) {
       console.error(`❌ Ошибка: ${error.message}`);
