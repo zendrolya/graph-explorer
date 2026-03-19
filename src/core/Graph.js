@@ -657,4 +657,179 @@ export class Graph {
 
     return path;
   }
+
+  findMinimumSpanningTreePrim() {
+    if (this.isDirected) {
+      throw new Error(
+        "Алгоритм Прима работает только для неориентированных графов",
+      );
+    }
+
+    if (!this.isWeighted) {
+      throw new Error("Алгоритм Прима требует взвешенный граф");
+    }
+
+    const vertices = this.getVertices();
+
+    if (vertices.length === 0) {
+      return new Graph({
+        isDirected: false,
+        isWeighted: true,
+        name: "Empty MST",
+      });
+    }
+
+    const mst = new Graph({
+      isDirected: false,
+      isWeighted: true,
+      name: this.name + "_MST",
+    });
+
+    // Добавляем все вершины
+    vertices.forEach((v) => mst.addVertex(v));
+
+    const visited = new Set();
+    const edges = [];
+
+    const start = vertices[0];
+    visited.add(start);
+
+    // Добавляем рёбра стартовой вершины
+    const addEdges = (v) => {
+      const neighbors = this.adjacencyList.get(v);
+
+      for (const [to, weight] of neighbors) {
+        if (!visited.has(to)) {
+          edges.push({ from: v, to, weight });
+        }
+      }
+    };
+
+    addEdges(start);
+
+    while (visited.size < vertices.length && edges.length > 0) {
+      // Находим минимальное ребро
+      edges.sort((a, b) => a.weight - b.weight);
+      const minEdge = edges.shift();
+
+      if (visited.has(minEdge.to)) continue;
+
+      // Добавляем в MST
+      mst.addEdge(minEdge.from, minEdge.to, minEdge.weight);
+      visited.add(minEdge.to);
+
+      addEdges(minEdge.to);
+    }
+
+    return mst;
+  }
+
+  dijkstraShortestPathsTo(target) {
+    if (!this.isWeighted) {
+      throw new Error("Граф должен быть взвешенным");
+    }
+
+    const vertices = this.getVertices();
+    const reversed = this.getReversedGraph(); // нужен обратный граф
+
+    const dist = {};
+    const visited = new Set();
+
+    vertices.forEach((v) => (dist[v] = Infinity));
+    dist[target] = 0;
+
+    while (visited.size < vertices.length) {
+      let u = null;
+
+      for (const v of vertices) {
+        if (!visited.has(v) && (u === null || dist[v] < dist[u])) {
+          u = v;
+        }
+      }
+
+      if (u === null || dist[u] === Infinity) break;
+
+      visited.add(u);
+
+      const neighbors = reversed.adjacencyList.get(u);
+
+      for (const [v, w] of neighbors) {
+        if (dist[u] + w < dist[v]) {
+          dist[v] = dist[u] + w;
+        }
+      }
+    }
+
+    return dist;
+  }
+
+  bellmanFord(start) {
+    const vertices = this.getVertices();
+    const edges = this.toEdgeList();
+
+    const dist = {};
+    vertices.forEach((v) => (dist[v] = Infinity));
+    dist[start] = 0;
+
+    for (let i = 0; i < vertices.length - 1; i++) {
+      for (const { from, to, weight } of edges) {
+        if (dist[from] + weight < dist[to]) {
+          dist[to] = dist[from] + weight;
+        }
+      }
+    }
+
+    // проверка отрицательного цикла
+    for (const { from, to, weight } of edges) {
+      if (dist[from] + weight < dist[to]) {
+        throw new Error("Обнаружен отрицательный цикл");
+      }
+    }
+
+    return dist;
+  }
+
+  findInfiniteNegativePaths() {
+    const vertices = this.getVertices();
+    const n = vertices.length;
+
+    const index = {};
+    vertices.forEach((v, i) => (index[v] = i));
+
+    const dist = Array.from({ length: n }, () => Array(n).fill(Infinity));
+
+    for (let i = 0; i < n; i++) dist[i][i] = 0;
+
+    for (const { from, to, weight } of this.toEdgeList()) {
+      dist[index[from]][index[to]] = weight;
+    }
+
+    // Флойд
+    for (let k = 0; k < n; k++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (dist[i][k] + dist[k][j] < dist[i][j]) {
+            dist[i][j] = dist[i][k] + dist[k][j];
+          }
+        }
+      }
+    }
+
+    // поиск отрицательных циклов
+    const result = [];
+
+    for (let k = 0; k < n; k++) {
+      if (dist[k][k] < 0) {
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            if (dist[i][k] < Infinity && dist[k][j] < Infinity) {
+              result.push([vertices[i], vertices[j]]);
+            }
+          }
+        }
+      }
+    }
+
+    return result;
+  }
 }

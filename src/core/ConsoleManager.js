@@ -55,6 +55,11 @@ class ConsoleManager {
     window.stronglyConnectedComponents =
       this.stronglyConnectedComponents.bind(this);
     window.shortestPathsTo = this.shortestPathsTo.bind(this);
+    window.minimumSpanningTree = this.minimumSpanningTree.bind(this);
+    window.dijkstraTo = this.dijkstraTo.bind(this);
+    window.bellmanFordFrom = this.bellmanFordFrom.bind(this);
+    window.findNegativeInfinitePaths =
+      this.findNegativeInfinitePaths.bind(this);
 
     // Команды для работы с файлами
     window.loadExample = this.loadExample.bind(this);
@@ -90,8 +95,12 @@ class ConsoleManager {
 ║    vertexDegree([вершина])                    - степень вершины      ║
 ║    nonAdjacentVertices(вершина)               - вершины, не смежные с║
 ║    mutualEdgesGraph()                 - оставить только взаимные дуги║
-║    stronglyConnectedComponents()       - сильно связные компоненты   ║
-║    shortestPathsTo(вершина)            - кратчайшие пути до вершины  ║
+║    stronglyConnectedComponents()      - сильно связные компоненты    ║
+║    shortestPathsTo(вершина)           - кратчайшие пути до вершины   ║
+║    minimumSpanningTree()              - минимальный остов (Прим)     ║
+║    dijkstraTo(v, u1, u2)              - кратчайшие пути u1,u2 → v    ║
+║    bellmanFordFrom(u, v1, v2)         - кратчайшие пути u → v1,v2    ║
+║    findNegativeInfinitePaths()        - пары с бесконечно малым путём║
 ║                                                                      ║
 ║  📁 РАБОТА С ФАЙЛАМИ:                                                ║
 ║    loadExample(номер)                         - загрузить пример     ║
@@ -643,6 +652,103 @@ class ConsoleManager {
       }
     } catch (error) {
       console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  // Prim's Algorithm https://www.geeksforgeeks.org/dsa/prims-minimum-spanning-tree-mst-greedy-algo-5/
+  minimumSpanningTree() {
+    if (!this.currentGraph) {
+      console.error("❌ Ошибка: сначала создайте или выберите граф");
+      return;
+    }
+
+    if (this.currentGraph.isDirected) {
+      console.error("❌ MST существует только для неориентированных графов");
+      return;
+    }
+
+    if (!this.currentGraph.isWeighted) {
+      console.error("❌ MST требует взвешенный граф");
+      return;
+    }
+
+    try {
+      const mst = this.currentGraph.findMinimumSpanningTreePrim();
+
+      let name = this.currentGraph.name + "_mst";
+      let counter = 1;
+
+      while (!this.isGraphNameUnique(name)) {
+        name = this.currentGraph.name + "_mst_" + counter;
+        counter++;
+      }
+
+      mst.name = name;
+
+      this.setGraphs([...this.graphs, mst]);
+      this.setCurrentGraph(mst);
+      this.updateGraphData(mst);
+
+      console.log(`✅ Построен минимальный остов: "${name}"`);
+      console.log(
+        `Рёбер: ${mst.toEdgeList().length}, Вершин: ${mst.getVertices().length}`,
+      );
+
+      this.showEdges();
+    } catch (error) {
+      console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  dijkstraTo(v, u1, u2) {
+    if (!this.currentGraph) return console.error("Нет графа");
+
+    try {
+      const dist = this.currentGraph.dijkstraShortestPathsTo(v);
+
+      console.log(`\n📊 Кратчайшие пути до ${v}:`);
+
+      [u1, u2].forEach((u) => {
+        if (!u) return;
+        console.log(`${u} → ${v}: ${dist[u]}`);
+      });
+    } catch (e) {
+      console.error(e.message);
+    }
+  }
+
+  bellmanFordFrom(u, v1, v2) {
+    if (!this.currentGraph) return console.error("Нет графа");
+
+    try {
+      const dist = this.currentGraph.bellmanFord(u);
+
+      console.log(`\n📊 Кратчайшие пути из ${u}:`);
+
+      [v1, v2].forEach((v) => {
+        if (!v) return;
+        console.log(`${u} → ${v}: ${dist[v]}`);
+      });
+    } catch (e) {
+      console.error(e.message);
+    }
+  }
+
+  findNegativeInfinitePaths() {
+    if (!this.currentGraph) return console.error("Нет графа");
+
+    try {
+      const pairs = this.currentGraph.findInfiniteNegativePaths();
+
+      console.log("\n📊 Пары вершин с путём бесконечно малого веса:");
+
+      pairs.forEach(([u, v]) => {
+        console.log(`${u} → ${v}`);
+      });
+
+      console.log(`Всего: ${pairs.length}`);
+    } catch (e) {
+      console.error(e.message);
     }
   }
 
