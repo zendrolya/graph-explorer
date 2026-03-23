@@ -56,10 +56,12 @@ class ConsoleManager {
       this.stronglyConnectedComponents.bind(this);
     window.shortestPathsTo = this.shortestPathsTo.bind(this);
     window.minimumSpanningTree = this.minimumSpanningTree.bind(this);
+    /*
     window.dijkstraTo = this.dijkstraTo.bind(this);
     window.bellmanFordFrom = this.bellmanFordFrom.bind(this);
     window.findNegativeInfinitePaths =
       this.findNegativeInfinitePaths.bind(this);
+    */
 
     // Команды для работы с файлами
     window.loadExample = this.loadExample.bind(this);
@@ -149,7 +151,6 @@ class ConsoleManager {
 
   // Копирование графа
   copyGraph(sourceName, newName) {
-    // Проверка наличия исходного графа
     if (!sourceName || typeof sourceName !== "string") {
       console.error("❌ Ошибка: укажите имя исходного графа");
       return;
@@ -163,7 +164,6 @@ class ConsoleManager {
       return;
     }
 
-    // Проверка нового имени
     if (!newName || typeof newName !== "string") {
       console.error("❌ Ошибка: укажите имя для нового графа");
       return;
@@ -199,7 +199,7 @@ class ConsoleManager {
   // Список всех графов
   listGraphs() {
     if (this.graphs.length === 0) {
-      console.log("📭 Нет созданных графов");
+      console.log("Нет созданных графов");
       return;
     }
 
@@ -245,7 +245,6 @@ class ConsoleManager {
       return;
     }
 
-    // Подтверждение в консоли
     console.log(`⚠️ Вы уверены, что хотите удалить граф "${name}"?`);
     console.log("💡 Для подтверждения введите: confirmDelete()");
 
@@ -254,7 +253,6 @@ class ConsoleManager {
       this.setGraphs(newGraphs);
 
       if (this.currentGraph && this.currentGraph.name === name) {
-        // Если удаляем текущий граф, переключаемся на первый доступный
         if (newGraphs.length > 0) {
           this.setCurrentGraph(newGraphs[0]);
           this.updateGraphData(newGraphs[0]);
@@ -356,7 +354,7 @@ class ConsoleManager {
       return;
     }
 
-    console.log(`\n📊 ГРАФ: ${this.currentGraph.name}`);
+    console.log(`\nГРАФ: ${this.currentGraph.name}`);
     console.log(this.currentGraph.toFileString());
   }
 
@@ -369,10 +367,10 @@ class ConsoleManager {
 
     const vertices = this.currentGraph.getVertices();
     if (vertices.length === 0) {
-      console.log(`📭 Граф "${this.currentGraph.name}" не содержит вершин`);
+      console.log(`Граф "${this.currentGraph.name}" не содержит вершин`);
     } else {
       console.log(
-        `📌 Вершины графа "${this.currentGraph.name}":`,
+        `Вершины графа "${this.currentGraph.name}":`,
         vertices.join(", "),
       );
     }
@@ -387,9 +385,9 @@ class ConsoleManager {
 
     const edges = this.currentGraph.toEdgeList();
     if (edges.length === 0) {
-      console.log(`📭 Граф "${this.currentGraph.name}" не содержит рёбер`);
+      console.log(`Граф "${this.currentGraph.name}" не содержит рёбер`);
     } else {
-      console.log(`🔗 Рёбра графа "${this.currentGraph.name}":`);
+      console.log(`Рёбра графа "${this.currentGraph.name}":`);
       edges.forEach((edge) => {
         const edgeStr = this.currentGraph.isDirected
           ? `${edge.from} → ${edge.to}`
@@ -411,7 +409,6 @@ class ConsoleManager {
 
     try {
       if (vertex) {
-        // Степень конкретной вершины
         if (!this.currentGraph.adjacencyList.has(vertex)) {
           console.error(`❌ Ошибка: вершина "${vertex}" не существует`);
           return;
@@ -420,9 +417,7 @@ class ConsoleManager {
         const neighbors = this.currentGraph.adjacencyList.get(vertex);
         let degree = neighbors.size;
 
-        // Для ориентированных графов нужно учитывать входящие рёбра
         if (this.currentGraph.isDirected) {
-          // Считаем входящие рёбра (полустепень захода)
           let inDegree = 0;
           for (const [v, n] of this.currentGraph.adjacencyList) {
             if (v !== vertex) {
@@ -435,7 +430,7 @@ class ConsoleManager {
           }
 
           console.log(
-            `\n📊 Степени вершины "${vertex}" в графе "${this.currentGraph.name}":`,
+            `\nСтепени вершины "${vertex}" в графе "${this.currentGraph.name}":`,
           );
           console.log(`   Полустепень исхода (out-degree): ${degree}`);
           console.log(`   Полустепень захода (in-degree): ${inDegree}`);
@@ -443,14 +438,11 @@ class ConsoleManager {
         } else {
           // Для неориентированного графа
           console.log(
-            `\n📊 Степень вершины "${vertex}" в графе "${this.currentGraph.name}": ${degree}`,
+            `\nСтепень вершины "${vertex}" в графе "${this.currentGraph.name}": ${degree}`,
           );
         }
       } else {
-        // Степени всех вершин
-        console.log(
-          `\n📊 СТЕПЕНИ ВСЕХ ВЕРШИН графа "${this.currentGraph.name}":`,
-        );
+        console.log(`\nСТЕПЕНИ ВСЕХ ВЕРШИН графа "${this.currentGraph.name}":`);
 
         const vertices = this.currentGraph.getVertices().sort();
 
@@ -461,8 +453,6 @@ class ConsoleManager {
 
           vertices.forEach((v) => {
             const outDegree = this.currentGraph.adjacencyList.get(v).size;
-
-            // Считаем входящие рёбра
             let inDegree = 0;
             for (const [u, neighbors] of this.currentGraph.adjacencyList) {
               if (u !== v) {
@@ -511,9 +501,6 @@ class ConsoleManager {
 
       const allVertices = this.currentGraph.getVertices();
       const neighbors = this.currentGraph.adjacencyList.get(vertex);
-
-      // Для ориентированных графов учитываем только исходящие связи?
-      // По умолчанию считаем "не смежные" - те, с которыми нет ребра в обе стороны
       const neighborSet = new Set();
 
       if (this.currentGraph.isWeighted) {
@@ -526,23 +513,21 @@ class ConsoleManager {
         }
       }
 
-      // Находим вершины, не являющиеся соседями (и не сама вершина)
       const nonAdjacent = allVertices.filter(
         (v) => v !== vertex && !neighborSet.has(v),
       );
 
       if (nonAdjacent.length === 0) {
         console.log(
-          `\n🔍 Все вершины смежны с "${vertex}" в графе "${this.currentGraph.name}"`,
+          `\nВсе вершины смежны с "${vertex}" в графе "${this.currentGraph.name}"`,
         );
       } else {
         console.log(
-          `\n🔍 Вершины, НЕ смежные с "${vertex}" в графе "${this.currentGraph.name}":`,
+          `\nВершины, НЕ смежные с "${vertex}" в графе "${this.currentGraph.name}":`,
         );
         console.log(`   ${nonAdjacent.join(", ")} (${nonAdjacent.length} шт.)`);
       }
 
-      // Для справки показываем также смежные вершины
       if (neighborSet.size > 0) {
         const adjacent = Array.from(neighborSet).sort();
         console.log(
@@ -655,7 +640,7 @@ class ConsoleManager {
     }
   }
 
-  // Prim's Algorithm https://www.geeksforgeeks.org/dsa/prims-minimum-spanning-tree-mst-greedy-algo-5/
+  // Алгоритм Прима
   minimumSpanningTree() {
     if (!this.currentGraph) {
       console.error("❌ Ошибка: сначала создайте или выберите граф");
@@ -700,13 +685,14 @@ class ConsoleManager {
     }
   }
 
+  /*
   dijkstraTo(v, u1, u2) {
     if (!this.currentGraph) return console.error("Нет графа");
 
     try {
       const dist = this.currentGraph.dijkstraShortestPathsTo(v);
 
-      console.log(`\n📊 Кратчайшие пути до ${v}:`);
+      console.log(`\nКратчайшие пути до ${v}:`);
 
       [u1, u2].forEach((u) => {
         if (!u) return;
@@ -723,7 +709,7 @@ class ConsoleManager {
     try {
       const dist = this.currentGraph.bellmanFord(u);
 
-      console.log(`\n📊 Кратчайшие пути из ${u}:`);
+      console.log(`\nКратчайшие пути из ${u}:`);
 
       [v1, v2].forEach((v) => {
         if (!v) return;
@@ -740,7 +726,7 @@ class ConsoleManager {
     try {
       const pairs = this.currentGraph.findInfiniteNegativePaths();
 
-      console.log("\n📊 Пары вершин с путём бесконечно малого веса:");
+      console.log("\nПары вершин с путём бесконечно малого веса:");
 
       pairs.forEach(([u, v]) => {
         console.log(`${u} → ${v}`);
@@ -751,6 +737,7 @@ class ConsoleManager {
       console.error(e.message);
     }
   }
+  */
 
   // Загрузка примера
   async loadExample(index) {
@@ -777,14 +764,10 @@ class ConsoleManager {
       }
 
       const content = await response.text();
-
-      // Создаём новый граф (параметры будут определены из файла)
       const newGraph = new Graph();
 
-      // Загружаем содержимое
       newGraph.loadFromFileContent(content);
 
-      // Создаём уникальное имя, если нужно
       let graphName = this.testFiles[idx].name;
       let counter = 1;
       while (!this.isGraphNameUnique(graphName)) {
@@ -792,10 +775,8 @@ class ConsoleManager {
         counter++;
       }
 
-      // Устанавливаем имя
       newGraph.name = graphName;
 
-      // Добавляем граф в список
       this.setGraphs([...this.graphs, newGraph]);
       this.setCurrentGraph(newGraph);
       this.updateGraphData(newGraph);

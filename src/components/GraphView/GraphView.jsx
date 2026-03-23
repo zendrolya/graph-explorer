@@ -88,7 +88,7 @@ function GraphView({
           link.source.id === selectedEdge.to &&
           link.target.id === selectedEdge.from));
 
-    // Цвет ребра #EF9312 - оранжевый
+    // Цвет ребра - оранжевый
     ctx.strokeStyle = isSelected ? "#ff6b6b" : link.color || "#EF9312";
     ctx.stroke();
 

@@ -8,18 +8,16 @@
 
 export class Graph {
   constructor(options = {}) {
-    // конструктор по умолчанию
     this.adjacencyList = new Map(); // список смежности
     this.isDirected = options.isDirected ?? false; // ориентированный или нет граф
     this.isWeighted = options.isWeighted ?? false; // взвешенный или нет граф
     this.name = options.name || "Новый граф"; // название графа
   }
 
+  // Конструктор для графов-примеров
   static fromFile(filename, options = {}) {
-    // Конструктор для графов-примеров
     const graph = new Graph(options);
 
-    // Извлекаем название из имени файла (без расширения)
     const nameFromFile = filename.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
     graph.name = options.name || nameFromFile;
 
@@ -48,6 +46,7 @@ export class Graph {
     return graph;
   }
 
+  // Копирующий конструктор
   static fromGraph(otherGraph) {
     const graph = new Graph({
       isDirected: otherGraph.isDirected,
@@ -85,7 +84,7 @@ export class Graph {
     return true;
   }
 
-  // Метод для получения названия графа
+  // Геттер name
   getName() {
     return this.name;
   }
@@ -102,9 +101,10 @@ export class Graph {
   }
 
   /*
-      МЕТОДЫ ГРАФА
+    МЕТОДЫ ГРАФА
   */
 
+  // Список смежности в список ребер
   toEdgeList() {
     const edges = [];
 
@@ -144,7 +144,6 @@ export class Graph {
 
   // Добавление ребра/дуги
   addEdge(from, to, weight = 1) {
-    // Проверка существования вершин
     if (!this.adjacencyList.has(from)) {
       throw new Error(`Вершина ${from} не существует`);
     }
@@ -152,7 +151,6 @@ export class Graph {
       throw new Error(`Вершина ${to} не существует`);
     }
 
-    // Проверка веса для взвешенного графа
     if (this.isWeighted) {
       if (typeof weight !== "number" || weight <= 0) {
         throw new Error("Вес ребра должен быть положительным числом");
@@ -163,7 +161,6 @@ export class Graph {
 
     const fromNeighbors = this.adjacencyList.get(from);
 
-    // Проверка на существующее ребро
     if (this.isWeighted) {
       if (fromNeighbors.has(to)) {
         console.warn(`Ребро ${from} -> ${to} уже существует`);
@@ -197,7 +194,6 @@ export class Graph {
       throw new Error(`Вершина ${vertex} не существует`);
     }
 
-    // Удаляем все рёбра, ведущие к этой вершине
     for (const [v, neighbors] of this.adjacencyList) {
       if (v !== vertex) {
         if (this.isWeighted) {
@@ -208,7 +204,6 @@ export class Graph {
       }
     }
 
-    // Удаляем саму вершину
     this.adjacencyList.delete(vertex);
     return true;
   }
@@ -224,7 +219,6 @@ export class Graph {
 
     const fromNeighbors = this.adjacencyList.get(from);
 
-    // Проверка существования ребра
     if (this.isWeighted) {
       if (!fromNeighbors.has(to)) {
         throw new Error(`Ребро ${from} -> ${to} не существует`);
@@ -254,14 +248,13 @@ export class Graph {
   toFileString() {
     let result = "";
 
-    // Добавляем заголовок с типом графа
+    // Заголовок с типом графа
     result += this.isDirected ? "DIRECTED" : "UNDIRECTED";
     result += this.isWeighted ? " WEIGHTED\n" : "\n";
 
-    // Добавляем название графа как комментарий
+    // Название графа как комментарий
     result += `# ${this.name}\n`;
 
-    // Получаем все вершины и сортируем для удобства чтения
     const vertices = Array.from(this.adjacencyList.keys()).sort();
 
     for (const vertex of vertices) {
@@ -272,7 +265,6 @@ export class Graph {
         const neighborStrings = [];
 
         if (this.isWeighted) {
-          // Для взвешенного графа: сортируем соседей
           const sortedNeighbors = Array.from(neighbors.entries()).sort((a, b) =>
             a[0].localeCompare(b[0]),
           );
@@ -281,7 +273,6 @@ export class Graph {
             neighborStrings.push(`${neighbor}(${weight})`);
           }
         } else {
-          // Для невзвешенного графа
           const sortedNeighbors = Array.from(neighbors).sort();
           neighborStrings.push(...sortedNeighbors);
         }
@@ -327,7 +318,7 @@ export class Graph {
     }
   }
 
-  // Проверка существования ребра
+  // Метод для проверки существования ребра
   hasEdge(from, to) {
     if (!this.adjacencyList.has(from) || !this.adjacencyList.has(to)) {
       return false;
@@ -342,7 +333,7 @@ export class Graph {
     }
   }
 
-  // Получение веса ребра
+  // Метод для получения веса ребра
   getEdgeWeight(from, to) {
     if (!this.hasEdge(from, to)) {
       return null;
@@ -354,17 +345,15 @@ export class Graph {
     return 1;
   }
 
-  // Загрузка из строки с поддержкой комментариев
+  // Загрузка из строки
   loadFromString(content) {
     const lines = content.split("\n").filter((line) => line.trim() !== "");
 
     for (const line of lines) {
-      // Пропускаем строки с опциями, если они есть в файле
       if (line.startsWith("DIRECTED") || line.startsWith("UNDIRECTED")) {
         continue;
       }
 
-      // Проверяем, не является ли строка комментарием с названием
       if (line.startsWith("# ")) {
         this.name = line.substring(2).trim();
         continue;
@@ -375,7 +364,6 @@ export class Graph {
 
       const vertex = vertexPart;
 
-      // Добавляем вершину, если её нет
       if (!this.adjacencyList.has(vertex)) {
         this.addVertex(vertex);
       }
@@ -387,7 +375,6 @@ export class Graph {
         for (const neighbor of neighbors) {
           if (neighbor === "") continue;
 
-          // Проверяем, есть ли вес (формат: вершина(вес))
           const match = neighbor.match(/(\w+)\((\d+)\)/);
 
           if (match && this.isWeighted) {
@@ -401,28 +388,26 @@ export class Graph {
     }
   }
 
-  // Загрузка из файла с контентом (для fetch)
+  // Загрузка из файла
   loadFromFileContent(content, graphName = null) {
     const lines = content.split("\n").filter((line) => line.trim() !== "");
 
-    // Сбрасываем граф
     this.adjacencyList.clear();
 
     if (lines.length === 0) return;
 
-    // Определяем тип графа
+    // Тип графа
     const firstLine = lines[0].trim();
 
     this.isDirected = firstLine.includes("DIRECTED");
     this.isWeighted = firstLine.includes("WEIGHTED");
 
-    // Обрабатываем строки начиная со 2
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
 
       if (!line) continue;
 
-      // Комментарий с названием
+      // Название графа
       if (line.startsWith("# ")) {
         this.name = line.substring(2).trim();
         continue;
@@ -433,7 +418,6 @@ export class Graph {
 
       const vertex = vertexPart;
 
-      // ✅ создаём вершину если её нет
       if (!this.adjacencyList.has(vertex)) {
         this.addVertex(vertex);
       }
@@ -456,7 +440,6 @@ export class Graph {
             neighborVertex = neighbor;
           }
 
-          // ✅ создаём соседа если его нет
           if (!this.adjacencyList.has(neighborVertex)) {
             this.addVertex(neighborVertex);
           }
@@ -580,7 +563,7 @@ export class Graph {
     return components;
   }
 
-  // транспонирование графа
+  // Транспонирование графа
   getTranspose() {
     const g = new Graph({
       isDirected: true,
@@ -642,22 +625,7 @@ export class Graph {
     return { dist, parent };
   }
 
-  buildPath(parent, start, end) {
-    const path = [];
-    let cur = start;
-
-    while (cur !== null) {
-      path.push(cur);
-      cur = parent[cur];
-    }
-
-    path.reverse();
-
-    if (path[0] !== end) return null;
-
-    return path;
-  }
-
+  // Алгоритм Прима: https://habr.com/ru/articles/569444/ | https://www.geeksforgeeks.org/dsa/prims-minimum-spanning-tree-mst-greedy-algo-5/
   findMinimumSpanningTreePrim() {
     if (this.isDirected) {
       throw new Error(
@@ -685,7 +653,6 @@ export class Graph {
       name: this.name + "_MST",
     });
 
-    // Добавляем все вершины
     vertices.forEach((v) => mst.addVertex(v));
 
     const visited = new Set();
@@ -694,7 +661,6 @@ export class Graph {
     const start = vertices[0];
     visited.add(start);
 
-    // Добавляем рёбра стартовой вершины
     const addEdges = (v) => {
       const neighbors = this.adjacencyList.get(v);
 
@@ -708,13 +674,11 @@ export class Graph {
     addEdges(start);
 
     while (visited.size < vertices.length && edges.length > 0) {
-      // Находим минимальное ребро
       edges.sort((a, b) => a.weight - b.weight);
       const minEdge = edges.shift();
 
       if (visited.has(minEdge.to)) continue;
 
-      // Добавляем в MST
       mst.addEdge(minEdge.from, minEdge.to, minEdge.weight);
       visited.add(minEdge.to);
 
@@ -724,13 +688,14 @@ export class Graph {
     return mst;
   }
 
+  /* Исправить баги в методах
   dijkstraShortestPathsTo(target) {
     if (!this.isWeighted) {
       throw new Error("Граф должен быть взвешенным");
     }
 
     const vertices = this.getVertices();
-    const reversed = this.getReversedGraph(); // нужен обратный граф
+    const reversed = this.getReversedGraph();
 
     const dist = {};
     const visited = new Set();
@@ -779,7 +744,6 @@ export class Graph {
       }
     }
 
-    // проверка отрицательного цикла
     for (const { from, to, weight } of edges) {
       if (dist[from] + weight < dist[to]) {
         throw new Error("Обнаружен отрицательный цикл");
@@ -804,7 +768,6 @@ export class Graph {
       dist[index[from]][index[to]] = weight;
     }
 
-    // Флойд
     for (let k = 0; k < n; k++) {
       for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
@@ -815,7 +778,6 @@ export class Graph {
       }
     }
 
-    // поиск отрицательных циклов
     const result = [];
 
     for (let k = 0; k < n; k++) {
@@ -832,4 +794,5 @@ export class Graph {
 
     return result;
   }
+*/
 }

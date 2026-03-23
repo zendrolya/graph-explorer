@@ -1,7 +1,6 @@
 import styles from "./GraphEditor.module.css";
 import GraphView from "../GraphView/GraphView.jsx";
 import ConsoleManager from "../../core/ConsoleManager.js";
-import { Graph } from "../../core/Graph.js";
 import { useState, useEffect, useRef } from "react";
 
 function GraphEditor() {
@@ -110,7 +109,7 @@ function GraphEditor() {
     updateGraphDataFromGraph(graph);
   };
 
-  // Обновляем ссылку при изменении зависимостей
+  // Обновление ссылки при изменении зависимостей
   useEffect(() => {
     if (consoleManagerRef.current) {
       consoleManagerRef.current.graphs = graphs;
