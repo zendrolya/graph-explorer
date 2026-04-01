@@ -52,16 +52,16 @@ class ConsoleManager {
     window.vertexDegree = this.vertexDegree.bind(this);
     window.nonAdjacentVertices = this.nonAdjacentVertices.bind(this);
     window.mutualEdgesGraph = this.mutualEdgesGraph.bind(this);
+
     window.stronglyConnectedComponents =
       this.stronglyConnectedComponents.bind(this);
     window.shortestPathsTo = this.shortestPathsTo.bind(this);
     window.minimumSpanningTree = this.minimumSpanningTree.bind(this);
-    /*
+
     window.dijkstraTo = this.dijkstraTo.bind(this);
     window.bellmanFordFrom = this.bellmanFordFrom.bind(this);
     window.findNegativeInfinitePaths =
       this.findNegativeInfinitePaths.bind(this);
-    */
 
     // Команды для работы с файлами
     window.loadExample = this.loadExample.bind(this);
@@ -682,6 +682,102 @@ class ConsoleManager {
       this.showEdges();
     } catch (error) {
       console.error(`❌ Ошибка: ${error.message}`);
+    }
+  }
+
+  dijkstraTo(v, u1, u2) {
+    if (!this.currentGraph) {
+      console.error("❌ Нет графа");
+      return;
+    }
+
+    try {
+      const { dist, parent } = this.currentGraph.dijkstraTo(v);
+
+      console.log(`\nКРАТЧАЙШИЕ ПУТИ К ${v}:`);
+
+      [u1, u2].forEach((u) => {
+        if (!u) return;
+
+        if (dist[u] === Infinity) {
+          console.log(`${u} → ${v}: пути нет`);
+          return;
+        }
+
+        const path = [];
+        let cur = u;
+
+        while (cur !== null) {
+          path.push(cur);
+          cur = parent[cur];
+        }
+
+        console.log(`${u} → ${v}: ${path.join(" → ")} (длина: ${dist[u]})`);
+      });
+    } catch (e) {
+      console.error(`Ошибка: ${e.message}`);
+    }
+  }
+
+  bellmanFordFrom(u, v1, v2) {
+    if (!this.currentGraph) {
+      console.error("Нет графа");
+      return;
+    }
+
+    try {
+      const { dist, parent } = this.currentGraph.bellmanFordFrom(u);
+
+      console.log(`\nКРАТЧАЙШИЕ ПУТИ ИЗ ${u}:`);
+
+      [v1, v2].forEach((v) => {
+        if (!v) return;
+
+        if (dist[v] === Infinity) {
+          console.log(`${u} → ${v}: пути нет`);
+          return;
+        }
+
+        const path = [];
+        let cur = v;
+
+        while (cur !== null) {
+          path.push(cur);
+          cur = parent[cur];
+        }
+
+        path.reverse();
+
+        console.log(`${u} → ${v}: ${path.join(" → ")} (длина: ${dist[v]})`);
+      });
+    } catch (e) {
+      console.error(`Ошибка: ${e.message}`);
+    }
+  }
+
+  findNegativeInfinitePaths() {
+    if (!this.currentGraph) {
+      console.error("Нет графа");
+      return;
+    }
+
+    try {
+      const pairs = this.currentGraph.findNegativeInfinitePaths();
+
+      console.log("\nПАРЫ С БЕСКОНЕЧНО МАЛЫМ ПУТЁМ:");
+
+      if (pairs.length === 0) {
+        console.log("Нет таких пар");
+        return;
+      }
+
+      pairs.forEach(([u, v]) => {
+        console.log(`${u} → ${v}`);
+      });
+
+      console.log(`Всего: ${pairs.length}`);
+    } catch (e) {
+      console.error(`Ошибка: ${e.message}`);
     }
   }
 

@@ -688,6 +688,138 @@ export class Graph {
     return mst;
   }
 
+  // Дейкстра кратчайшие пути из вершин u1 и u2 до v: https://habr.com/ru/companies/otus/articles/599621/
+  dijkstraTo(target) {
+    if (!this.isWeighted) {
+      throw new Error("Алгоритм Дейкстры требует взвешенный граф");
+    }
+
+    if (!this.adjacencyList.has(target)) {
+      throw new Error("Вершина не существует");
+    }
+
+    const reversed = this.getTranspose();
+    const vertices = this.getVertices();
+
+    const dist = {};
+    const parent = {};
+    const visited = new Set();
+
+    vertices.forEach((v) => {
+      dist[v] = Infinity;
+      parent[v] = null;
+    });
+
+    dist[target] = 0;
+
+    while (visited.size < vertices.length) {
+      let u = null;
+
+      for (const v of vertices) {
+        if (!visited.has(v) && (u === null || dist[v] < dist[u])) {
+          u = v;
+        }
+      }
+
+      if (u === null || dist[u] === Infinity) break;
+
+      visited.add(u);
+
+      const neighbors = reversed.adjacencyList.get(u);
+
+      for (const [v, w] of neighbors) {
+        if (dist[u] + w < dist[v]) {
+          dist[v] = dist[u] + w;
+          parent[v] = u;
+        }
+      }
+    }
+
+    return { dist, parent };
+  }
+
+  // Беллман-Форд кратчайшие пути из вершины u до v1 и v2: https://habr.com/ru/companies/otus/articles/484382/
+  bellmanFordFrom(start) {
+    if (!this.adjacencyList.has(start)) {
+      throw new Error("Вершина не существует");
+    }
+
+    const vertices = this.getVertices();
+    const edges = this.toEdgeList();
+
+    const dist = {};
+    const parent = {};
+
+    vertices.forEach((v) => {
+      dist[v] = Infinity;
+      parent[v] = null;
+    });
+
+    dist[start] = 0;
+
+    // релаксации
+    for (let i = 0; i < vertices.length - 1; i++) {
+      for (const { from, to, weight } of edges) {
+        if (dist[from] !== Infinity && dist[from] + weight < dist[to]) {
+          dist[to] = dist[from] + weight;
+          parent[to] = from;
+        }
+      }
+    }
+
+    // проверка отрицательных циклов
+    for (const { from, to, weight } of edges) {
+      if (dist[from] !== Infinity && dist[from] + weight < dist[to]) {
+        throw new Error("Обнаружен отрицательный цикл");
+      }
+    }
+
+    return { dist, parent };
+  }
+
+  // Флойд найти все такие пары вершин, что между ними существует путь сколько угодно малой длины: https://neerc.ifmo.ru/wiki/index.php?title=Алгоритм_Флойда
+  findNegativeInfinitePaths() {
+    const vertices = this.getVertices();
+    const n = vertices.length;
+
+    const index = {};
+    vertices.forEach((v, i) => (index[v] = i));
+
+    const dist = Array.from({ length: n }, () => Array(n).fill(Infinity));
+
+    for (let i = 0; i < n; i++) dist[i][i] = 0;
+
+    for (const { from, to, weight } of this.toEdgeList()) {
+      dist[index[from]][index[to]] = weight;
+    }
+
+    for (let k = 0; k < n; k++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (dist[i][k] + dist[k][j] < dist[i][j]) {
+            dist[i][j] = dist[i][k] + dist[k][j];
+          }
+        }
+      }
+    }
+
+    const result = [];
+
+    for (let k = 0; k < n; k++) {
+      if (dist[k][k] < 0) {
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            if (dist[i][k] < Infinity && dist[k][j] < Infinity) {
+              result.push([vertices[i], vertices[j]]);
+            }
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
   /* Исправить баги в методах
   dijkstraShortestPathsTo(target) {
     if (!this.isWeighted) {
