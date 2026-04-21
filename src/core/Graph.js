@@ -819,4 +819,99 @@ export class Graph {
 
     return result;
   }
+
+  // Алгоритм Форда–Фалкерсона (максимальный поток): https://habr.com/ru/articles/927400/
+  maxFlowFordFulkerson(source, sink) {
+    if (!this.isDirected) {
+      throw new Error(
+        "Алгоритм максимального потока требует ориентированный граф",
+      );
+    }
+
+    if (!this.isWeighted) {
+      throw new Error(
+        "Граф должен быть взвешенным (веса = пропускные способности)",
+      );
+    }
+
+    if (!this.adjacencyList.has(source) || !this.adjacencyList.has(sink)) {
+      throw new Error("Источник или сток не существуют");
+    }
+
+    // --- остаточная сеть ---
+    const residual = new Map();
+
+    // инициализация
+    for (const [u, neighbors] of this.adjacencyList) {
+      residual.set(u, new Map());
+
+      for (const [v, capacity] of neighbors) {
+        residual.get(u).set(v, capacity);
+
+        // обратное ребро
+        if (!residual.has(v)) {
+          residual.set(v, new Map());
+        }
+        if (!residual.get(v).has(u)) {
+          residual.get(v).set(u, 0);
+        }
+      }
+    }
+
+    let maxFlow = 0;
+
+    // BFS для поиска увеличивающего пути
+    const bfs = () => {
+      const queue = [source];
+      const parent = {};
+      const visited = new Set([source]);
+
+      while (queue.length > 0) {
+        const u = queue.shift();
+
+        for (const [v, capacity] of residual.get(u)) {
+          if (!visited.has(v) && capacity > 0) {
+            visited.add(v);
+            parent[v] = u;
+            queue.push(v);
+
+            if (v === sink) {
+              return parent;
+            }
+          }
+        }
+      }
+
+      return null;
+    };
+
+    let parent;
+
+    while ((parent = bfs()) !== null) {
+      // находим минимальную пропускную способность на пути
+      let pathFlow = Infinity;
+      let v = sink;
+
+      while (v !== source) {
+        const u = parent[v];
+        pathFlow = Math.min(pathFlow, residual.get(u).get(v));
+        v = u;
+      }
+
+      // обновляем остаточную сеть
+      v = sink;
+      while (v !== source) {
+        const u = parent[v];
+
+        residual.get(u).set(v, residual.get(u).get(v) - pathFlow);
+        residual.get(v).set(u, residual.get(v).get(u) + pathFlow);
+
+        v = u;
+      }
+
+      maxFlow += pathFlow;
+    }
+
+    return maxFlow;
+  }
 }

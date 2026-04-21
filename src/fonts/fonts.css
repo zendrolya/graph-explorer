@@ -3,3 +3,21 @@
   src: url("Inter-Regular.otf");
   font-weight: normal;
 }
+
+@font-face {
+  font-family: "Jost";
+  src: url("jost-semibold.ttf");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("FiraSans-Regular.ttf");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Advent Pro";
+  src: url("AdventPro-SemiBold.ttf");
+  font-weight: normal;
+}

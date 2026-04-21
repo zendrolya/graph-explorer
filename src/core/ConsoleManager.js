@@ -63,6 +63,8 @@ class ConsoleManager {
     window.findNegativeInfinitePaths =
       this.findNegativeInfinitePaths.bind(this);
 
+    window.maxFlow = this.maxFlow.bind(this);
+
     // Команды для работы с файлами
     window.loadExample = this.loadExample.bind(this);
     window.saveGraph = this.saveGraph.bind(this);
@@ -781,59 +783,20 @@ class ConsoleManager {
     }
   }
 
-  /*
-  dijkstraTo(v, u1, u2) {
-    if (!this.currentGraph) return console.error("Нет графа");
+  maxFlow(source, sink) {
+    if (!this.currentGraph) {
+      console.error("❌ Нет графа");
+      return;
+    }
 
     try {
-      const dist = this.currentGraph.dijkstraShortestPathsTo(v);
+      const flow = this.currentGraph.maxFlowFordFulkerson(source, sink);
 
-      console.log(`\nКратчайшие пути до ${v}:`);
-
-      [u1, u2].forEach((u) => {
-        if (!u) return;
-        console.log(`${u} → ${v}: ${dist[u]}`);
-      });
+      console.log(`\n🚰 МАКСИМАЛЬНЫЙ ПОТОК (${source} → ${sink}): ${flow}`);
     } catch (e) {
-      console.error(e.message);
+      console.error(`❌ Ошибка: ${e.message}`);
     }
   }
-
-  bellmanFordFrom(u, v1, v2) {
-    if (!this.currentGraph) return console.error("Нет графа");
-
-    try {
-      const dist = this.currentGraph.bellmanFord(u);
-
-      console.log(`\nКратчайшие пути из ${u}:`);
-
-      [v1, v2].forEach((v) => {
-        if (!v) return;
-        console.log(`${u} → ${v}: ${dist[v]}`);
-      });
-    } catch (e) {
-      console.error(e.message);
-    }
-  }
-
-  findNegativeInfinitePaths() {
-    if (!this.currentGraph) return console.error("Нет графа");
-
-    try {
-      const pairs = this.currentGraph.findInfiniteNegativePaths();
-
-      console.log("\nПары вершин с путём бесконечно малого веса:");
-
-      pairs.forEach(([u, v]) => {
-        console.log(`${u} → ${v}`);
-      });
-
-      console.log(`Всего: ${pairs.length}`);
-    } catch (e) {
-      console.error(e.message);
-    }
-  }
-  */
 
   // Загрузка примера
   async loadExample(index) {
