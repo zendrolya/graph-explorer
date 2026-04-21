@@ -155,7 +155,15 @@ function GraphEditor() {
             Удалить граф
           </button>
           <details className={styles.header_button} title="Методы">
-            <summary className={styles.header_summary}>Методы</summary>
+            <summary className={styles.header_summary}>
+              <img
+                className={styles.svg_icon}
+                src="/icons/methods.svg"
+                draggable="false"
+                alt="Методы"
+              />
+              Методы
+            </summary>
             <ul className={styles.methods_list}>
               <li>Степень вершин графа</li>
               <li>Все вершины графа, не смежные с данной</li>
@@ -176,6 +184,7 @@ function GraphEditor() {
             title="Сохранить граф"
           >
             <img
+              className={styles.svg_icon}
               src="/icons/save-graph.svg"
               draggable="false"
               alt="Сохранить граф"
@@ -187,6 +196,7 @@ function GraphEditor() {
             title="Загрузить граф"
           >
             <img
+              className={styles.svg_icon}
               src="/icons/load-graph.svg"
               draggable="false"
               alt="Загрузить граф"

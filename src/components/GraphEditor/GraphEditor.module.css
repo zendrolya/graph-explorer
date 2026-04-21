@@ -1,29 +1,34 @@
+.svg_icon {
+  width: 14px;
+  height: 14px;
+}
+
 /* ========== HEADER ========== */
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 71px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 71px;
 }
 
 .btn_container {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-left: 110px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-left: 110px;
 }
 
 .header_button {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #fff;
-    background-color: #7D7D7D;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    border: none;
-    position: relative;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  background-color: #7d7d7d;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  border: none;
+  position: relative;
+  cursor: pointer;
 }
 
 .add_button,
@@ -31,7 +36,7 @@
 .save_button,
 .load_button,
 .header_summary {
-    padding: 10px;
+  padding: 10px;
 }
 
 .add_button:hover,
@@ -39,105 +44,108 @@
 .save_button:hover,
 .load_button:hover,
 .header_summary:hover {
-    color: #000;
+  color: #000;
 }
 
-.header_button:hover, .fullscreen_btn:hover {
-    background-color: #C9C9C9;
+.header_button:hover,
+.fullscreen_btn:hover {
+  background-color: #c9c9c9;
 }
 
 .add_button:hover {
-    background-color: #A7E131;
-    border: none;
+  background-color: #a7e131;
+  border: none;
 }
 
 .delete_button:hover {
-    background-color: #F91F1F;
-    border: none;
+  background-color: #f91f1f;
+  border: none;
 }
 
 .header_summary {
-    display: block;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 summary::after {
-    content: "▽";
-    margin-left: 5px;
+  content: "▽";
+  margin-left: 5px;
 }
 
 details[open] summary:after {
-    content: "△";
-    margin-left: 5px;
+  content: "△";
+  margin-left: 5px;
 }
 
 .methods_list {
-    min-width: 160px;
-    position: absolute;
-    top: 150%;
-    left: -25px;
-    background-color: green;
-    z-index: 1;
+  min-width: 160px;
+  position: absolute;
+  top: 150%;
+  left: -25px;
+  background-color: green;
+  z-index: 1;
 }
 
 .methods_list li {
-    padding: 5px 10px;
+  padding: 5px 10px;
 }
 
 .methods_list li:hover {
-    background-color: #90EE90;
-    color: #000;
+  background-color: #90ee90;
+  color: #000;
 }
 
 /* === Fullscreen mode === */
 
 .main_container {
-    background-color: #33664E;
+  background-color: #33664e;
 }
 
 .fullscreen_btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 25px;
-    height: 25px;
-    border: none;
-    background: none;
-    margin-right: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border: none;
+  background: none;
+  margin-right: 34px;
 }
 
 /* ========== MAIN ========== */
 
 .main {
-    width: calc(100vw - 20px);
-    height: calc(100vh - 71px - 20px);
-    display: flex;
+  width: calc(100vw - 20px);
+  height: calc(100vh - 71px - 20px);
+  display: flex;
 }
 
 .instruments_panel {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    padding: 0 26px;
-    background-color: #00E57C;
-    border: 1px solid #000;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 26px;
+  background-color: #00e57c;
+  border: 1px solid #000;
+  height: 100%;
 }
 
 .instruments_btn {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 37px;
-    height: 37px;
-    padding: 4px;
-    border: 3px solid #000;
-    background-color: #309164;
-    cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 37px;
+  height: 37px;
+  padding: 4px;
+  border: 3px solid #000;
+  background-color: #309164;
+  cursor: pointer;
 }
 
 .instruments_btn:hover {
-    background-color: #92FFCC;
+  background-color: #92ffcc;
 }

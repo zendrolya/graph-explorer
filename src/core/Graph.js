@@ -152,7 +152,7 @@ export class Graph {
     }
 
     if (this.isWeighted) {
-      if (typeof weight !== "number" || weight <= 0) {
+      if (typeof weight !== "number") {
         throw new Error("Вес ребра должен быть положительным числом");
       }
     } else {
@@ -819,112 +819,4 @@ export class Graph {
 
     return result;
   }
-
-  /* Исправить баги в методах
-  dijkstraShortestPathsTo(target) {
-    if (!this.isWeighted) {
-      throw new Error("Граф должен быть взвешенным");
-    }
-
-    const vertices = this.getVertices();
-    const reversed = this.getReversedGraph();
-
-    const dist = {};
-    const visited = new Set();
-
-    vertices.forEach((v) => (dist[v] = Infinity));
-    dist[target] = 0;
-
-    while (visited.size < vertices.length) {
-      let u = null;
-
-      for (const v of vertices) {
-        if (!visited.has(v) && (u === null || dist[v] < dist[u])) {
-          u = v;
-        }
-      }
-
-      if (u === null || dist[u] === Infinity) break;
-
-      visited.add(u);
-
-      const neighbors = reversed.adjacencyList.get(u);
-
-      for (const [v, w] of neighbors) {
-        if (dist[u] + w < dist[v]) {
-          dist[v] = dist[u] + w;
-        }
-      }
-    }
-
-    return dist;
-  }
-
-  bellmanFord(start) {
-    const vertices = this.getVertices();
-    const edges = this.toEdgeList();
-
-    const dist = {};
-    vertices.forEach((v) => (dist[v] = Infinity));
-    dist[start] = 0;
-
-    for (let i = 0; i < vertices.length - 1; i++) {
-      for (const { from, to, weight } of edges) {
-        if (dist[from] + weight < dist[to]) {
-          dist[to] = dist[from] + weight;
-        }
-      }
-    }
-
-    for (const { from, to, weight } of edges) {
-      if (dist[from] + weight < dist[to]) {
-        throw new Error("Обнаружен отрицательный цикл");
-      }
-    }
-
-    return dist;
-  }
-
-  findInfiniteNegativePaths() {
-    const vertices = this.getVertices();
-    const n = vertices.length;
-
-    const index = {};
-    vertices.forEach((v, i) => (index[v] = i));
-
-    const dist = Array.from({ length: n }, () => Array(n).fill(Infinity));
-
-    for (let i = 0; i < n; i++) dist[i][i] = 0;
-
-    for (const { from, to, weight } of this.toEdgeList()) {
-      dist[index[from]][index[to]] = weight;
-    }
-
-    for (let k = 0; k < n; k++) {
-      for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-          if (dist[i][k] + dist[k][j] < dist[i][j]) {
-            dist[i][j] = dist[i][k] + dist[k][j];
-          }
-        }
-      }
-    }
-
-    const result = [];
-
-    for (let k = 0; k < n; k++) {
-      if (dist[k][k] < 0) {
-        for (let i = 0; i < n; i++) {
-          for (let j = 0; j < n; j++) {
-            if (dist[i][k] < Infinity && dist[k][j] < Infinity) {
-              result.push([vertices[i], vertices[j]]);
-            }
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-*/
 }
