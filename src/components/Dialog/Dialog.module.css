@@ -1,0 +1,76 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-width: 502px;
+  position: relative;
+  padding: 24px 33px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 30px;
+}
+
+.close_button {
+  position: absolute;
+  top: 24px;
+  right: 27px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+}
+
+.ok_button {
+  width: 105px;
+  padding: 11px 12px;
+  background-color: #18ce60;
+  border: none;
+  border-radius: 21px;
+  cursor: pointer;
+  font-family: "Advent Pro", sans-serif;
+  font-size: 20px;
+  color: #fff;
+}
+
+.cancel_button {
+  width: 105px;
+  padding: 11px 12px;
+  background-color: #ff2d2d;
+  border: none;
+  border-radius: 21px;
+  cursor: pointer;
+  font-family: "Advent Pro", sans-serif;
+  font-size: 20px;
+  color: #fff;
+}
+
+.title {
+  font-family: "Jost", sans-serif;
+  font-size: 32px;
+  font-weight: normal;
+  color: #000;
+}
+
+.text {
+  padding: 15px 0;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 20px;
+  color: #000;
+}

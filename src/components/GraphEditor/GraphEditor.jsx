@@ -5,6 +5,7 @@ import GraphView from "../GraphView/GraphView.jsx";
 import ConsoleManager from "../../core/ConsoleManager.js";
 import { useState, useEffect, useRef } from "react";
 import Popup from "../Popup/Popup.jsx";
+import Dialog from "../Dialog/Dialog.jsx";
 
 function GraphEditor() {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -139,6 +140,7 @@ function GraphEditor() {
       />
       <main className={styles.main}>
         <GraphInstruments />
+        <Dialog />
         <GraphView
           graphData={graphData}
           onVertexClick={handleVertexClick}
