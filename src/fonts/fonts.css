@@ -19,5 +19,11 @@
 @font-face {
   font-family: "Advent Pro";
   src: url("AdventPro-SemiBold.ttf");
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "Advent Pro";
+  src: url("AdventPro-Regular.ttf");
   font-weight: normal;
 }

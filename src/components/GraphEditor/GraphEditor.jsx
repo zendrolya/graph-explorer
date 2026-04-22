@@ -140,7 +140,7 @@ function GraphEditor() {
       />
       <main className={styles.main}>
         <GraphInstruments />
-        <Dialog />
+        <Dialog type="add_edge" />
         <GraphView
           graphData={graphData}
           onVertexClick={handleVertexClick}
