@@ -8,18 +8,22 @@ class ConsoleManager {
     setCurrentGraph,
     updateGraphData,
   ) {
-    this.graphs = graphs; // массив всех графов
-    this.setGraphs = setGraphs;
+    this.graphs = graphs;
+    this.setGraphs = (newGraphs) => {
+      this.graphs = newGraphs;
+      setGraphs(newGraphs);
+    };
+
     this.currentGraph = currentGraph;
-    this.setCurrentGraph = setCurrentGraph;
+    this.setCurrentGraph = (graph) => {
+      this.currentGraph = graph;
+      setCurrentGraph(graph);
+    };
+
     this.updateGraphData = updateGraphData;
 
-    // Список доступных тестовых файлов
     this.testFiles = [
-      {
-        name: "Социальная сеть",
-        file: "undirected_unweighted.txt",
-      },
+      { name: "Социальная сеть", file: "undirected_unweighted.txt" },
       { name: "Карта метро", file: "directed_weighted.txt" },
       { name: "Сеть дорог", file: "undirected_weighted.txt" },
       { name: "HTML структура", file: "directed_unweighted.txt" },
@@ -105,6 +109,7 @@ class ConsoleManager {
 ║    dijkstraTo(v, u1, u2)              - кратчайшие пути u1,u2 → v    ║
 ║    bellmanFordFrom(u, v1, v2)         - кратчайшие пути u → v1,v2    ║
 ║    findNegativeInfinitePaths()        - пары с бесконечно малым путём║
+║    maxFlow(source, sink)              - максимальный поток           ║
 ║                                                                      ║
 ║  📁 РАБОТА С ФАЙЛАМИ:                                                ║
 ║    loadExample(номер)                         - загрузить пример     ║
@@ -128,93 +133,118 @@ class ConsoleManager {
     return !this.graphs.some((g) => g.name === name);
   }
 
+  // Вывод в логах + возврат значений
+  logResult(success, message, data = null) {
+    if (success) {
+      console.log(message);
+    } else {
+      console.error(message);
+    }
+
+    return {
+      success,
+      message,
+      data,
+    };
+  }
+
+  ensureGraph() {
+    if (!this.currentGraph) {
+      this.logResult(false, "❌ Ошибка: сначала создайте или выберите граф");
+      return false;
+    }
+
+    return true;
+  }
+
+  refreshCurrentGraph() {
+    this.updateGraphData(this.currentGraph);
+  }
+
   // Создание нового графа
   createGraph(name, isDirected = false, isWeighted = false) {
-    if (!name || typeof name !== "string") {
-      console.error("❌ Ошибка: укажите имя графа");
-      return;
+    if (!name || !name.trim()) {
+      return this.logResult(false, "❌ Укажите имя графа");
     }
 
-    if (!this.isGraphNameUnique(name)) {
-      console.error(`❌ Ошибка: граф с именем "${name}" уже существует`);
-      return;
+    const trimmedName = name.trim();
+
+    if (!this.isGraphNameUnique(trimmedName)) {
+      return this.logResult(false, `❌ Граф "${trimmedName}" уже существует`);
     }
 
-    const newGraph = new Graph({ isDirected, isWeighted, name });
-    this.setGraphs([...this.graphs, newGraph]);
-    this.setCurrentGraph(newGraph);
-    this.updateGraphData(newGraph);
+    try {
+      const newGraph = new Graph({
+        name: trimmedName,
+        isDirected,
+        isWeighted,
+      });
 
-    console.log(`✅ Создан новый граф: "${name}"`);
-    console.log(
-      `   Тип: ${isDirected ? "ориентированный" : "неориентированный"}, ${isWeighted ? "взвешенный" : "невзвешенный"}`,
-    );
+      const updatedGraphs = [...this.graphs, newGraph];
+
+      this.setGraphs(updatedGraphs);
+      this.setCurrentGraph(newGraph);
+      this.updateGraphData(newGraph);
+
+      return this.logResult(true, `✅ Граф "${trimmedName}" создан`, newGraph);
+    } catch (error) {
+      return this.logResult(
+        false,
+        `❌ Ошибка создания графа: ${error.message}`,
+      );
+    }
   }
 
   // Копирование графа
   copyGraph(sourceName, newName) {
-    if (!sourceName || typeof sourceName !== "string") {
-      console.error("❌ Ошибка: укажите имя исходного графа");
-      return;
+    if (!sourceName || !newName) {
+      return this.logResult(false, "❌ Укажите исходное имя и новое имя графа");
     }
 
     const sourceGraph = this.graphs.find((g) => g.name === sourceName);
 
     if (!sourceGraph) {
-      console.error(`❌ Ошибка: граф "${sourceName}" не найден`);
-      this.listGraphs();
-      return;
-    }
-
-    if (!newName || typeof newName !== "string") {
-      console.error("❌ Ошибка: укажите имя для нового графа");
-      return;
+      return this.logResult(false, `❌ Граф "${sourceName}" не найден`);
     }
 
     if (!this.isGraphNameUnique(newName)) {
-      console.error(`❌ Ошибка: граф с именем "${newName}" уже существует`);
-      this.listGraphs();
-      return;
+      return this.logResult(false, `❌ Граф "${newName}" уже существует`);
     }
 
     try {
-      const newGraph = Graph.fromGraph(sourceGraph);
-      newGraph.setName(newName);
+      const copiedGraph = Graph.fromGraph(sourceGraph);
+      copiedGraph.setName(newName);
 
-      this.setGraphs([...this.graphs, newGraph]);
+      const updatedGraphs = [...this.graphs, copiedGraph];
 
-      this.setCurrentGraph(newGraph);
-      this.updateGraphData(newGraph);
+      this.setGraphs(updatedGraphs);
+      this.setCurrentGraph(copiedGraph);
+      this.updateGraphData(copiedGraph);
 
-      console.log(`✅ Граф "${sourceName}" успешно скопирован в "${newName}"`);
-      console.log(
-        `   Тип: ${newGraph.isDirected ? "ориентированный" : "неориентированный"}, ${newGraph.isWeighted ? "взвешенный" : "невзвешенный"}`,
-      );
-      console.log(
-        `   Вершин: ${newGraph.getVertices().length}, Рёбер: ${newGraph.toEdgeList().length}`,
+      return this.logResult(
+        true,
+        `✅ Граф "${sourceName}" скопирован в "${newName}"`,
+        copiedGraph,
       );
     } catch (error) {
-      console.error(`❌ Ошибка при копировании графа: ${error.message}`);
+      return this.logResult(false, `❌ Ошибка копирования: ${error.message}`);
     }
   }
 
   // Список всех графов
   listGraphs() {
-    if (this.graphs.length === 0) {
-      console.log("Нет созданных графов");
-      return;
+    if (!this.graphs.length) {
+      return this.logResult(false, "📭 Нет созданных графов");
     }
 
-    console.log("\n📋 СПИСОК ГРАФОВ:");
+    console.log("📋 СПИСОК ГРАФОВ:");
+
     this.graphs.forEach((graph, index) => {
-      const info = graph.getInfo();
-      const current = graph === this.currentGraph ? " ▶ (текущий)" : "";
+      const current = graph === this.currentGraph ? " (текущий)" : "";
       console.log(`${index + 1}. ${graph.name}${current}`);
-      console.log(
-        `   Тип: ${info.isDirected ? "ориентированный" : "неориентированный"}, ${info.isWeighted ? "взвешенный" : "невзвешенный"}`,
-      );
-      console.log(`   Вершин: ${info.vertexCount}, Рёбер: ${info.edgeCount}`);
     });
+
+    return this.graphs;
   }
 
   // Переключение на другой граф
@@ -222,15 +252,13 @@ class ConsoleManager {
     const graph = this.graphs.find((g) => g.name === name);
 
     if (!graph) {
-      console.error(`❌ Ошибка: граф "${name}" не найден`);
-      this.listGraphs();
-      return;
+      return this.logResult(false, `❌ Граф "${name}" не найден`);
     }
 
     this.setCurrentGraph(graph);
     this.updateGraphData(graph);
-    console.log(`✅ Переключено на граф: "${name}"`);
-    this.showGraph();
+
+    return this.logResult(true, `✅ Переключено на граф "${name}"`, graph);
   }
 
   // Удаление графа
@@ -268,6 +296,37 @@ class ConsoleManager {
       console.log(`✅ Граф "${name}" удалён`);
       delete window.confirmDelete;
     };
+  }
+
+  // Удаление графа (Dialog)
+  deleteGraphVisual(name) {
+    if (this.graphs.length === 0) {
+      return this.logResult(false, "❌ Нет графов для удаления");
+    }
+
+    const graphToDelete = name
+      ? this.graphs.find((g) => g.name === name)
+      : this.currentGraph;
+
+    if (!graphToDelete) {
+      return this.logResult(false, "❌ Граф не найден");
+    }
+
+    const newGraphs = this.graphs.filter((g) => g.name !== graphToDelete.name);
+
+    this.setGraphs(newGraphs);
+
+    if (this.currentGraph?.name === graphToDelete.name) {
+      if (newGraphs.length > 0) {
+        this.setCurrentGraph(newGraphs[0]);
+        this.updateGraphData(newGraphs[0]);
+      } else {
+        this.setCurrentGraph(null);
+        this.updateGraphData(null);
+      }
+    }
+
+    return this.logResult(true, `✅ Граф "${graphToDelete.name}" удалён`);
   }
 
   // Добавление вершины
@@ -405,153 +464,94 @@ class ConsoleManager {
   // Степень вершины
   vertexDegree(vertex) {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
+      return this.logResult(
+        false,
+        "❌ Ошибка: сначала создайте или выберите граф",
+      );
     }
 
     try {
-      if (vertex) {
-        if (!this.currentGraph.adjacencyList.has(vertex)) {
-          console.error(`❌ Ошибка: вершина "${vertex}" не существует`);
-          return;
-        }
-
-        const neighbors = this.currentGraph.adjacencyList.get(vertex);
-        let degree = neighbors.size;
-
-        if (this.currentGraph.isDirected) {
-          let inDegree = 0;
-          for (const [v, n] of this.currentGraph.adjacencyList) {
-            if (v !== vertex) {
-              if (this.currentGraph.isWeighted) {
-                if (n.has(vertex)) inDegree++;
-              } else {
-                if (n.has(vertex)) inDegree++;
-              }
-            }
-          }
-
-          console.log(
-            `\nСтепени вершины "${vertex}" в графе "${this.currentGraph.name}":`,
-          );
-          console.log(`   Полустепень исхода (out-degree): ${degree}`);
-          console.log(`   Полустепень захода (in-degree): ${inDegree}`);
-          console.log(`   Полная степень: ${degree + inDegree}`);
-        } else {
-          // Для неориентированного графа
-          console.log(
-            `\nСтепень вершины "${vertex}" в графе "${this.currentGraph.name}": ${degree}`,
-          );
-        }
-      } else {
-        console.log(`\nСТЕПЕНИ ВСЕХ ВЕРШИН графа "${this.currentGraph.name}":`);
-
-        const vertices = this.currentGraph.getVertices().sort();
-
-        if (this.currentGraph.isDirected) {
-          // Для ориентированного графа
-          console.log("   Вершина | Исход | Заход | Полная");
-          console.log("   ---------|-------|-------|--------");
-
-          vertices.forEach((v) => {
-            const outDegree = this.currentGraph.adjacencyList.get(v).size;
-            let inDegree = 0;
-            for (const [u, neighbors] of this.currentGraph.adjacencyList) {
-              if (u !== v) {
-                if (this.currentGraph.isWeighted) {
-                  if (neighbors.has(v)) inDegree++;
-                } else {
-                  if (neighbors.has(v)) inDegree++;
-                }
-              }
-            }
-
-            console.log(
-              `   ${v.padEnd(7)} | ${outDegree.toString().padEnd(5)} | ${inDegree.toString().padEnd(5)} | ${outDegree + inDegree}`,
-            );
-          });
-        } else {
-          // Для неориентированного графа
-          vertices.forEach((v) => {
-            const degree = this.currentGraph.adjacencyList.get(v).size;
-            console.log(`   ${v}: ${degree}`);
-          });
-        }
+      if (!vertex) {
+        return this.logResult(false, "❌ Ошибка: укажите вершину");
       }
+
+      if (!this.currentGraph.adjacencyList.has(vertex)) {
+        return this.logResult(
+          false,
+          `❌ Ошибка: вершина "${vertex}" не существует`,
+        );
+      }
+
+      const neighbors = this.currentGraph.adjacencyList.get(vertex);
+      const degree = neighbors.size;
+
+      if (this.currentGraph.isDirected) {
+        let inDegree = 0;
+
+        for (const [, n] of this.currentGraph.adjacencyList) {
+          if (n.has(vertex)) inDegree++;
+        }
+
+        return this.logResult(
+          true,
+          `✅ Вершина "${vertex}": исход = ${degree}, заход = ${inDegree}, полная = ${degree + inDegree}`,
+          {
+            outDegree: degree,
+            inDegree,
+            total: degree + inDegree,
+          },
+        );
+      }
+
+      return this.logResult(true, `✅ Степень вершины "${vertex}": ${degree}`, {
+        degree,
+      });
     } catch (error) {
-      console.error(`❌ Ошибка: ${error.message}`);
+      return this.logResult(false, `❌ Ошибка: ${error.message}`);
     }
   }
 
   // Вершины, не смежные с данной
   nonAdjacentVertices(vertex) {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
+      return this.logResult(
+        false,
+        "❌ Ошибка: сначала создайте или выберите граф",
+      );
     }
 
     if (!vertex) {
-      console.error("❌ Ошибка: укажите вершину");
-      return;
+      return this.logResult(false, "❌ Ошибка: укажите вершину");
     }
 
     try {
       if (!this.currentGraph.adjacencyList.has(vertex)) {
-        console.error(`❌ Ошибка: вершина "${vertex}" не существует`);
-        return;
+        return this.logResult(
+          false,
+          `❌ Ошибка: вершина "${vertex}" не существует`,
+        );
       }
 
       const allVertices = this.currentGraph.getVertices();
       const neighbors = this.currentGraph.adjacencyList.get(vertex);
-      const neighborSet = new Set();
-
-      if (this.currentGraph.isWeighted) {
-        for (const [v, _] of neighbors) {
-          neighborSet.add(v);
-        }
-      } else {
-        for (const v of neighbors) {
-          neighborSet.add(v);
-        }
-      }
 
       const nonAdjacent = allVertices.filter(
-        (v) => v !== vertex && !neighborSet.has(v),
+        (v) => v !== vertex && !neighbors.has(v),
       );
 
-      if (nonAdjacent.length === 0) {
-        console.log(
-          `\nВсе вершины смежны с "${vertex}" в графе "${this.currentGraph.name}"`,
-        );
-      } else {
-        console.log(
-          `\nВершины, НЕ смежные с "${vertex}" в графе "${this.currentGraph.name}":`,
-        );
-        console.log(`   ${nonAdjacent.join(", ")} (${nonAdjacent.length} шт.)`);
-      }
-
-      if (neighborSet.size > 0) {
-        const adjacent = Array.from(neighborSet).sort();
-        console.log(
-          `\n   Смежные вершины: ${adjacent.join(", ")} (${adjacent.length} шт.)`,
-        );
-      } else {
-        console.log(`\n   Смежных вершин нет`);
-      }
+      return this.logResult(
+        true,
+        `✅ Несмежные с "${vertex}": ${nonAdjacent.length ? nonAdjacent.join(", ") : "отсутствуют"}`,
+        nonAdjacent,
+      );
     } catch (error) {
-      console.error(`❌ Ошибка: ${error.message}`);
+      return this.logResult(false, `❌ Ошибка: ${error.message}`);
     }
   }
 
   mutualEdgesGraph() {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
-    }
-
-    if (!this.currentGraph.isDirected) {
-      console.error("❌ Метод применим только к ориентированным графам");
-      return;
+      return this.logResult(false, "❌ Ошибка: сначала создайте граф");
     }
 
     try {
@@ -561,8 +561,7 @@ class ConsoleManager {
       let counter = 1;
 
       while (!this.isGraphNameUnique(name)) {
-        name = this.currentGraph.name + "_mutual_" + counter;
-        counter++;
+        name = `${this.currentGraph.name}_mutual_${counter++}`;
       }
 
       newGraph.name = name;
@@ -571,92 +570,51 @@ class ConsoleManager {
       this.setCurrentGraph(newGraph);
       this.updateGraphData(newGraph);
 
-      console.log(`✅ Создан граф взаимных дуг: "${name}"`);
-      this.showGraph();
+      return this.logResult(true, `Создан граф "${name}"`, newGraph);
     } catch (error) {
-      console.error(`❌ Ошибка: ${error.message}`);
+      return this.logResult(false, error.message);
     }
   }
 
   stronglyConnectedComponents() {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
-    }
-
-    if (!this.currentGraph.isDirected) {
-      console.error("❌ SCC определены только для ориентированных графов");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
       const components = this.currentGraph.findStronglyConnectedComponents();
 
-      console.log(
-        `\n📊 СИЛЬНО СВЯЗНЫЕ КОМПОНЕНТЫ графа "${this.currentGraph.name}":`,
+      return this.logResult(
+        true,
+        `Найдено компонент: ${components.length}`,
+        components,
       );
-
-      components.forEach((comp, i) => {
-        console.log(`  ${i + 1}. ${comp.join(", ")}`);
-      });
-
-      console.log(`Всего компонент: ${components.length}`);
     } catch (error) {
-      console.error(`❌ Ошибка: ${error.message}`);
+      return this.logResult(false, error.message);
     }
   }
 
   shortestPathsTo(vertex) {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
-    }
-
-    if (!vertex) {
-      console.error("❌ Укажите вершину");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
-      const { dist, parent } = this.currentGraph.shortestPathsTo(vertex);
+      const { dist } = this.currentGraph.shortestPathsTo(vertex);
 
-      console.log(
-        `\n📊 КРАТЧАЙШИЕ ПУТИ ДО ВЕРШИНЫ "${vertex}" в графе "${this.currentGraph.name}":`,
-      );
+      const result = Object.entries(dist)
+        .map(([v, d]) => `${v} → ${vertex}: ${d}`)
+        .join("\n");
 
-      for (const v in dist) {
-        const path = [];
-        let cur = v;
-
-        while (cur !== null) {
-          path.push(cur);
-          cur = parent[cur];
-        }
-
-        path.reverse();
-
-        console.log(`${v} → ${vertex}: ${path.join(" → ")}`);
-      }
+      return this.logResult(true, result, dist);
     } catch (error) {
-      console.error(`❌ Ошибка: ${error.message}`);
+      return this.logResult(false, error.message);
     }
   }
 
-  // Алгоритм Прима
   minimumSpanningTree() {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
-    }
-
-    if (this.currentGraph.isDirected) {
-      console.error("❌ MST существует только для неориентированных графов");
-      return;
-    }
-
-    if (!this.currentGraph.isWeighted) {
-      console.error("❌ MST требует взвешенный граф");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
@@ -666,8 +624,7 @@ class ConsoleManager {
       let counter = 1;
 
       while (!this.isGraphNameUnique(name)) {
-        name = this.currentGraph.name + "_mst_" + counter;
-        counter++;
+        name = `${this.currentGraph.name}_mst_${counter++}`;
       }
 
       mst.name = name;
@@ -676,125 +633,89 @@ class ConsoleManager {
       this.setCurrentGraph(mst);
       this.updateGraphData(mst);
 
-      console.log(`✅ Построен минимальный остов: "${name}"`);
-      console.log(
-        `Рёбер: ${mst.toEdgeList().length}, Вершин: ${mst.getVertices().length}`,
-      );
-
-      this.showEdges();
+      return this.logResult(true, `Построен MST: ${name}`, mst);
     } catch (error) {
-      console.error(`❌ Ошибка: ${error.message}`);
+      return this.logResult(false, error.message);
     }
   }
 
   dijkstraTo(v, u1, u2) {
     if (!this.currentGraph) {
-      console.error("❌ Нет графа");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
-      const { dist, parent } = this.currentGraph.dijkstraTo(v);
+      const { dist } = this.currentGraph.dijkstraTo(v);
 
-      console.log(`\nКРАТЧАЙШИЕ ПУТИ К ${v}:`);
+      let output = "";
 
       [u1, u2].forEach((u) => {
-        if (!u) return;
-
-        if (dist[u] === Infinity) {
-          console.log(`${u} → ${v}: пути нет`);
-          return;
-        }
-
-        const path = [];
-        let cur = u;
-
-        while (cur !== null) {
-          path.push(cur);
-          cur = parent[cur];
-        }
-
-        console.log(`${u} → ${v}: ${path.join(" → ")} (длина: ${dist[u]})`);
+        output += `${u} → ${v}: ${
+          dist[u] === Infinity ? "пути нет" : dist[u]
+        }\n`;
       });
-    } catch (e) {
-      console.error(`Ошибка: ${e.message}`);
+
+      return this.logResult(true, output.trim(), dist);
+    } catch (error) {
+      return this.logResult(false, error.message);
     }
   }
 
   bellmanFordFrom(u, v1, v2) {
     if (!this.currentGraph) {
-      console.error("Нет графа");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
-      const { dist, parent } = this.currentGraph.bellmanFordFrom(u);
+      const { dist } = this.currentGraph.bellmanFordFrom(u);
 
-      console.log(`\nКРАТЧАЙШИЕ ПУТИ ИЗ ${u}:`);
+      const output = [v1, v2]
+        .map(
+          (v) => `${u} → ${v}: ${dist[v] === Infinity ? "пути нет" : dist[v]}`,
+        )
+        .join("\n");
 
-      [v1, v2].forEach((v) => {
-        if (!v) return;
-
-        if (dist[v] === Infinity) {
-          console.log(`${u} → ${v}: пути нет`);
-          return;
-        }
-
-        const path = [];
-        let cur = v;
-
-        while (cur !== null) {
-          path.push(cur);
-          cur = parent[cur];
-        }
-
-        path.reverse();
-
-        console.log(`${u} → ${v}: ${path.join(" → ")} (длина: ${dist[v]})`);
-      });
-    } catch (e) {
-      console.error(`Ошибка: ${e.message}`);
+      return this.logResult(true, output, dist);
+    } catch (error) {
+      return this.logResult(false, error.message);
     }
   }
 
   findNegativeInfinitePaths() {
     if (!this.currentGraph) {
-      console.error("Нет графа");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
       const pairs = this.currentGraph.findNegativeInfinitePaths();
 
-      console.log("\nПАРЫ С БЕСКОНЕЧНО МАЛЫМ ПУТЁМ:");
-
-      if (pairs.length === 0) {
-        console.log("Нет таких пар");
-        return;
+      if (!pairs.length) {
+        return this.logResult(true, "Таких пар нет", []);
       }
 
-      pairs.forEach(([u, v]) => {
-        console.log(`${u} → ${v}`);
-      });
+      const output = pairs.map(([u, v]) => `${u} → ${v}`).join("\n");
 
-      console.log(`Всего: ${pairs.length}`);
-    } catch (e) {
-      console.error(`Ошибка: ${e.message}`);
+      return this.logResult(true, output, pairs);
+    } catch (error) {
+      return this.logResult(false, error.message);
     }
   }
 
   maxFlow(source, sink) {
     if (!this.currentGraph) {
-      console.error("❌ Нет графа");
-      return;
+      return this.logResult(false, "❌ Нет графа");
     }
 
     try {
       const flow = this.currentGraph.maxFlowFordFulkerson(source, sink);
 
-      console.log(`\n🚰 МАКСИМАЛЬНЫЙ ПОТОК (${source} → ${sink}): ${flow}`);
-    } catch (e) {
-      console.error(`❌ Ошибка: ${e.message}`);
+      return this.logResult(
+        true,
+        `Максимальный поток ${source} → ${sink}: ${flow}`,
+        flow,
+      );
+    } catch (error) {
+      return this.logResult(false, error.message);
     }
   }
 
@@ -849,6 +770,48 @@ class ConsoleManager {
     } catch (error) {
       console.error(`❌ Ошибка загрузки файла: ${error.message}`);
     }
+  }
+
+  // Загрузка графа
+  async loadGraph() {
+    return new Promise((resolve, reject) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".txt";
+
+      input.onchange = async (event) => {
+        try {
+          const file = event.target.files[0];
+          if (!file) return reject();
+
+          const content = await file.text();
+
+          const newGraph = new Graph();
+          newGraph.loadFromFileContent(content);
+
+          let graphName = file.name.replace(".txt", "");
+          let counter = 1;
+
+          while (!this.isGraphNameUnique(graphName)) {
+            graphName = `${file.name.replace(".txt", "")} (${counter})`;
+            counter++;
+          }
+
+          newGraph.name = graphName;
+
+          this.setGraphs([...this.graphs, newGraph]);
+          this.setCurrentGraph(newGraph);
+          this.updateGraphData(newGraph);
+
+          console.log(`✅ Граф "${graphName}" загружен`);
+          resolve(newGraph);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      input.click();
+    });
   }
 
   // Сохранение графа в файл
