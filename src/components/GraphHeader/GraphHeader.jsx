@@ -47,9 +47,15 @@ function GraphHeader({ toggleFullscreen, isFullscreen }) {
             Методы
           </summary>
           <ul className={styles.dropdown_list}>
-            <li>Степень вершин графа</li>
-            <li>Все вершины графа, не смежные с данной</li>
-            <li>soon</li>
+            <li>Степень вершины графа</li>
+            <li>Вершины графа, не смежные с данной</li>
+            <li>Оставить только взаимные дуги</li>
+            <li>Сильно связные компоненты</li>
+            <li>Кратчайшие пути до вершины</li>
+            <li>Минимальный остов</li>
+            <li>Кратчайшие пути u1, u2 → v</li>
+            <li>Кратчайшие пути u → v1, v2</li>
+            <li>Пары с бесконечно малым путем</li>
           </ul>
         </details>
         <details name="accordion" title="Примеры">

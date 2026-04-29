@@ -1,5 +1,13 @@
 import styles from "./Dialog.module.css";
 
+const checked_img = (
+  <img
+    className={styles.checked_img}
+    src="/icons/choosen-graph.svg"
+    draggable="false"
+  />
+);
+
 const dialogType = {
   create_graph: {
     title: "Создать граф",
@@ -116,6 +124,27 @@ const dialogType = {
     ok_text: "Нет",
     cancel_text: "Да",
   },
+  graphs_list: {
+    title: "Список графов",
+    content: (
+      <ol className={styles.graphs_list}>
+        <li className={`${styles.graph_list_item} ${styles.checked}`}>
+          {checked_img}Текущий граф
+        </li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+        <li className={styles.graph_list_item}>Другой граф</li>
+      </ol>
+    ),
+  },
 };
 
 function Dialog({ type, onClose }) {
@@ -130,14 +159,18 @@ function Dialog({ type, onClose }) {
           <div className={styles.dialog_content}>
             {dialogType[type].content}
           </div>
-          <div className={styles.buttons}>
-            <button className={styles.ok_button}>
-              {dialogType[type].ok_text}
-            </button>
-            <button className={styles.cancel_button}>
-              {dialogType[type].cancel_text}
-            </button>
-          </div>
+          {"ok_button" in dialogType[type] ? (
+            <div className={styles.buttons}>
+              <button className={styles.ok_button}>
+                {dialogType[type].ok_text}
+              </button>
+              <button className={styles.cancel_button}>
+                {dialogType[type].cancel_text}
+              </button>
+            </div>
+          ) : (
+            ""
+          )}
         </form>
       </div>
     </div>

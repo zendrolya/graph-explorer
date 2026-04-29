@@ -165,3 +165,36 @@
   border: none;
   border-bottom: 2px solid #000;
 }
+
+/* === graphs_list === */
+
+.graphs_list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 303px;
+  max-height: 403px;
+  list-style-position: inside;
+  overflow-y: scroll;
+  scrollbar-color: #e5e5e5 #a6a5a5;
+}
+
+*::-webkit-scrollbar,
+html *::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.graph_list_item {
+  padding: 20px;
+  background-color: #c5e2f8;
+}
+
+.checked {
+  background-color: #4caffb;
+}
+
+.checked_img {
+  width: 20px;
+  height: 20px;
+}
