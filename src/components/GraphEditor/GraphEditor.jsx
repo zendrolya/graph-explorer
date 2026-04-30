@@ -486,13 +486,8 @@ function GraphEditor() {
 
       <main className={styles.main}>
         <GraphInstruments
-          hasGraph={!!currentGraph}
-          currentGraph={currentGraph}
-          selectedVertex={selectedVertex}
-          selectedEdge={selectedEdge}
-          showDialog={showDialog}
+          consoleManagerRef={consoleManagerRef}
           showPopup={showPopup}
-          updateGraph={setCurrentGraph}
         />
 
         <GraphView

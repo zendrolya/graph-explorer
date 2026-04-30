@@ -69,11 +69,7 @@ function GraphHeader({
         <details name="accordion" title="Методы">
           <summary
             role="button"
-            className={`${styles.button} ${styles.header_button}`}
-            style={{
-              pointerEvents: hasGraph ? "auto" : "none",
-              opacity: hasGraph ? 1 : 0.5,
-            }}
+            className={`${styles.button} ${styles.header_button} ${hasGraph ? "" : styles.summary_disabled}`}
           >
             <img
               className={styles.header_button_icon}

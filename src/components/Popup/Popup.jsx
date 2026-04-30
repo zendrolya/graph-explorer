@@ -10,7 +10,7 @@ function Popup({ text = "Текст", title = "Сообщение", onClose }) {
 
         <h2 className={styles.title}>{title}</h2>
 
-        <p className={styles.text}>{text}</p>
+        <textarea className={styles.text} value={text} readonly disabled />
 
         <button className={styles.ok_button} onClick={onClose}>
           ОК

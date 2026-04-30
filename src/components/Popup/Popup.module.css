@@ -16,6 +16,7 @@
 .popup {
   display: flex;
   flex-direction: column;
+  gap: 14px;
   min-width: 502px;
   position: relative;
   padding: 24px 33px;
@@ -47,6 +48,8 @@
 }
 
 .title {
+  max-width: 90%;
+  line-height: 1;
   font-family: "Jost", sans-serif;
   font-size: 32px;
   font-weight: normal;
@@ -54,7 +57,9 @@
 }
 
 .text {
-  padding: 15px 0;
+  min-height: 100px;
+  padding: 10px;
+  resize: none;
   font-family: "Fira Sans", sans-serif;
   font-size: 20px;
   color: #000;

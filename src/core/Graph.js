@@ -820,7 +820,7 @@ export class Graph {
     return result;
   }
 
-  // Алгоритм Форда–Фалкерсона (максимальный поток): https://habr.com/ru/articles/927400/
+  // Алгоритм Форда–Фалкерсона (максимальный поток Эдмондс-Карп): https://habr.com/ru/articles/927400/
   maxFlowFordFulkerson(source, sink) {
     if (!this.isDirected) {
       throw new Error(
