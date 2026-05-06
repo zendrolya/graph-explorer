@@ -32,7 +32,6 @@ function GraphView({
   useEffect(() => {
     if (graphRef.current && graphData.nodes.length > 0) {
       graphRef.current.d3Force("charge").strength(-100);
-      graphRef.current.d3ReheatSimulation();
     }
   }, [graphData]);
 
@@ -41,7 +40,11 @@ function GraphView({
   };
 
   const handleLinkClick = (link) => {
-    onEdgeClick(link);
+    onEdgeClick({
+      id: link.id,
+      from: link.source.id,
+      to: link.target.id,
+    });
   };
 
   const nodeCanvasObject = (node, ctx, globalScale) => {
@@ -49,19 +52,19 @@ function GraphView({
     const fontSize = 12 / globalScale;
     ctx.font = `${fontSize}px Sans-Serif`;
 
-    // Рисуем круг (цвет #1BA0D0 - синий)
+    const isSelected = selectedVertex === node.id;
+
     ctx.beginPath();
     ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
-    ctx.fillStyle = node.color || "#1BA0D0";
+    ctx.fillStyle = isSelected ? "#ff6b6b" : "#1BA0D0";
     ctx.fill();
 
-    if (selectedVertex === node.id) {
+    if (isSelected) {
       ctx.strokeStyle = "#ff6b6b";
       ctx.lineWidth = 3 / globalScale;
       ctx.stroke();
     }
 
-    // Текст
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#ffffff";
@@ -72,65 +75,99 @@ function GraphView({
     const start = link.source;
     const end = link.target;
 
-    if (!start || !end || !start.x || !end.x) return;
+    if (!start || !end) return;
 
-    ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.lineTo(end.x, end.y);
-
-    ctx.lineWidth = 2 / globalScale;
-
-    const isSelected =
-      selectedEdge &&
-      ((link.source.id === selectedEdge.from &&
-        link.target.id === selectedEdge.to) ||
-        (!graphData.isDirected &&
-          link.source.id === selectedEdge.to &&
-          link.target.id === selectedEdge.from));
-
-    // Цвет ребра - оранжевый
-    ctx.strokeStyle = isSelected ? "#ff6b6b" : link.color || "#EF9312";
-    ctx.stroke();
-
-    if (link.source.id === link.target.id) {
-      const node = link.source;
-
-      const r = 18;
-
+    /* =========================
+     1. ОБЩАЯ ЛИНИЯ (A — B)
+  ========================= */
+    if (link.type === "line") {
       ctx.beginPath();
-      ctx.arc(node.x, node.y - r, r, 0, 2 * Math.PI);
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
 
-      ctx.strokeStyle = link.color || "#EF9312";
-      ctx.lineWidth = 2 / globalScale;
+      ctx.strokeStyle = "#cccccc";
+      ctx.lineWidth = 1 / globalScale;
       ctx.stroke();
 
+      return;
+    }
+
+    /* =========================
+     2. ПЕТЛЯ (A → A)
+  ========================= */
+    if (start.id === end.id) {
+      const r = 20;
+
+      const isSelected =
+        selectedEdge &&
+        selectedEdge.from === link.source.id &&
+        selectedEdge.to === link.target.id;
+
+      ctx.beginPath();
+      ctx.arc(start.x, start.y - r, r, 0, 2 * Math.PI);
+
+      ctx.strokeStyle = isSelected ? "#ff6b6b" : "#EF9312";
+      ctx.lineWidth = isSelected ? 3 / globalScale : 2 / globalScale;
+      ctx.stroke();
+
+      // вес
       if (graphData?.isWeighted && link.label) {
         ctx.font = `${10 / globalScale}px Sans-Serif`;
         ctx.fillStyle = "#333";
-        ctx.fillText(link.label, node.x, node.y - r * 2);
+        ctx.fillText(link.label, start.x, start.y - r * 2);
       }
 
       return;
     }
 
-    if (graphData?.isWeighted && link.label && globalScale > 0.5) {
-      const dx = end.x - start.x;
-      const dy = end.y - start.y;
+    /* =========================
+     3. ДУГА (A → B)
+  ========================= */
 
+    const isSelected =
+      selectedEdge &&
+      selectedEdge.from === link.source.id &&
+      selectedEdge.to === link.target.id;
+
+    // линия
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+
+    ctx.strokeStyle = isSelected ? "#ff6b6b" : "#EF9312";
+    ctx.lineWidth = isSelected ? 3 / globalScale : 2 / globalScale;
+    ctx.stroke();
+
+    /* ===== стрелка ===== */
+    if (graphData?.isDirected) {
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+
+      const arrowLength = isSelected ? 14 / globalScale : 10 / globalScale;
+
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(
+        end.x - arrowLength * Math.cos(angle - 0.4),
+        end.y - arrowLength * Math.sin(angle - 0.4),
+      );
+      ctx.lineTo(
+        end.x - arrowLength * Math.cos(angle + 0.4),
+        end.y - arrowLength * Math.sin(angle + 0.4),
+      );
+      ctx.closePath();
+
+      ctx.fillStyle = isSelected ? "#ff3b3b" : "#EF9312";
+      ctx.fill();
+    }
+
+    /* ===== вес ===== */
+    if (graphData?.isWeighted && link.label) {
       const midX = (start.x + end.x) / 2;
       const midY = (start.y + end.y) / 2;
 
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-
-      const offset = graphData.isDirected ? 8 / globalScale : 0;
-
-      const offsetX = (-dy / len) * offset;
-      const offsetY = (dx / len) * offset;
-
       ctx.font = `${10 / globalScale}px Sans-Serif`;
       ctx.fillStyle = "#333";
-
-      ctx.fillText(link.label, midX + offsetX, midY + offsetY);
+      ctx.fillText(link.label, midX, midY);
     }
   };
 
@@ -145,6 +182,11 @@ function GraphView({
           linkCanvasObject={linkCanvasObject}
           onNodeClick={handleNodeClick}
           onLinkClick={handleLinkClick}
+          onBackgroundClick={() => {
+            onEdgeClick(null);
+            onVertexClick(null);
+          }}
+          onEngineStop={() => {}}
           nodeRelSize={8}
           linkDirectionalArrowLength={graphData?.isDirected ? 6 : 0}
           linkDirectionalArrowRelPos={1}

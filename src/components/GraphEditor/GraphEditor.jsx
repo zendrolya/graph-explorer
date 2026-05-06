@@ -119,10 +119,7 @@ function GraphEditor() {
 
   const updateGraphDataFromGraph = (graph) => {
     if (!graph) {
-      setGraphData({
-        nodes: [],
-        links: [],
-      });
+      setGraphData({ nodes: [], links: [] });
       return;
     }
 
@@ -131,31 +128,55 @@ function GraphEditor() {
 
     const vertices = graph.getVertices();
 
-    vertices.forEach((vertex) => {
+    vertices.forEach((v) => {
       nodes.push({
-        id: vertex,
-        name: vertex,
+        id: v,
+        name: v,
         val: 1,
-        color: selectedVertex === vertex ? "#ff6b6b" : "#1BA0D0",
+        color: selectedVertex === v ? "#ff6b6b" : "#1BA0D0",
       });
     });
 
     const edges = graph.toEdgeList();
 
-    edges.forEach((edge) => {
-      const isSelected =
-        selectedEdge &&
-        ((edge.from === selectedEdge.from && edge.to === selectedEdge.to) ||
-          (!graph.isDirected &&
-            edge.from === selectedEdge.to &&
-            edge.to === selectedEdge.from));
+    // Группируем A↔B
+    const edgeMap = new Map();
 
+    edges.forEach((e, i) => {
+      const key = [e.from, e.to].sort().join("|");
+
+      if (!edgeMap.has(key)) {
+        edgeMap.set(key, []);
+      }
+
+      edgeMap.get(key).push({
+        ...e,
+        id: `${e.from}->${e.to}#${i}`,
+      });
+    });
+
+    edgeMap.forEach((group) => {
+      // одна линия
       links.push({
-        source: edge.from,
-        target: edge.to,
-        weight: edge.weight,
-        color: isSelected ? "#ff6b6b" : "#EF9312",
-        label: graph.isWeighted ? edge.weight.toString() : "",
+        type: "line",
+        id: `line-${group[0].from}-${group[0].to}`,
+        source: group[0].from,
+        target: group[0].to,
+      });
+
+      // отдельные дуги
+      group.forEach((edge) => {
+        links.push({
+          type: "arc",
+          id: edge.id,
+          source: edge.from,
+          target: edge.to,
+          from: edge.from,
+          to: edge.to,
+
+          weight: edge.weight,
+          label: graph.isWeighted ? edge.weight.toString() : "",
+        });
       });
     });
 
@@ -420,6 +441,78 @@ function GraphEditor() {
     }
   };
 
+  const handleAddVertex = () => {
+    if (!currentGraph) {
+      showPopup("Ошибка", "Сначала создайте граф");
+      return;
+    }
+
+    showDialog("Добавление вершины", {
+      onConfirm: (name) => consoleManagerRef.current.addVertex(name),
+    });
+  };
+
+  const handleAddEdge = () => {
+    if (!currentGraph) {
+      showPopup("Ошибка", "Сначала создайте граф");
+      return;
+    }
+
+    showDialog("Добавление ребра", {
+      vertices: currentGraph.getVertices(),
+      onConfirm: (from, to, weight) => {
+        consoleManagerRef.current.addEdge(from, to, weight);
+        return { success: true };
+      },
+    });
+  };
+
+  const handleDelete = () => {
+    if (!selectedVertex && !selectedEdge) {
+      showPopup("Ошибка", "Сначала выберите вершину или ребро");
+      return;
+    }
+
+    if (selectedVertex) {
+      showDialog("Удаление вершины", {
+        onConfirm: () => {
+          consoleManagerRef.current.removeVertex(selectedVertex);
+          setSelectedVertex(null);
+          return { success: true };
+        },
+      });
+    }
+
+    if (selectedEdge) {
+      showDialog("Удаление ребра", {
+        onConfirm: () => {
+          consoleManagerRef.current.removeEdge(
+            selectedEdge.from,
+            selectedEdge.to,
+          );
+          setSelectedEdge(null);
+          return { success: true };
+        },
+      });
+    }
+  };
+
+  const handleShowAdjacency = () => {
+    if (!currentGraph) {
+      showPopup("Ошибка", "Нет графа");
+      return;
+    }
+
+    const result = consoleManagerRef.current.showGraph();
+
+    if (result?.success === false) {
+      showPopup("Ошибка", result.message);
+      return;
+    }
+
+    showPopup("Список смежности", result.message);
+  };
+
   /* =========================
      EXAMPLES
   ========================= */
@@ -445,15 +538,12 @@ function GraphEditor() {
   ========================= */
 
   const handleVertexClick = (vertex) => {
-    setSelectedVertex(vertex);
+    setSelectedVertex((prev) => (prev === vertex ? null : vertex));
     setSelectedEdge(null);
   };
 
   const handleEdgeClick = (edge) => {
-    setSelectedEdge({
-      from: edge.source.id,
-      to: edge.target.id,
-    });
+    setSelectedEdge(edge);
     setSelectedVertex(null);
   };
 
@@ -488,6 +578,14 @@ function GraphEditor() {
         <GraphInstruments
           consoleManagerRef={consoleManagerRef}
           showPopup={showPopup}
+          showDialog={showDialog}
+          currentGraph={currentGraph}
+          selectedVertex={selectedVertex}
+          selectedEdge={selectedEdge}
+          onAddVertex={handleAddVertex}
+          onAddEdge={handleAddEdge}
+          onDelete={handleDelete}
+          onShowAdjacency={handleShowAdjacency}
         />
 
         <GraphView

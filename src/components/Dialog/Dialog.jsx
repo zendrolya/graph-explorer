@@ -45,6 +45,8 @@ function Dialog({
 
   const [weight, setWeight] = useState("");
 
+  const [vertexName, setVertexName] = useState("");
+
   /* =========================
      HELPERS
   ========================= */
@@ -98,6 +100,10 @@ function Dialog({
 
       case "Максимальный поток":
         result = onConfirm(fromVertex, toVertex);
+        break;
+
+      case "Добавление вершины":
+        result = onConfirm(vertexName);
         break;
 
       default:
@@ -193,7 +199,14 @@ function Dialog({
       title: "Добавление вершины",
       content: (
         <div className={styles.form_container}>
-          <p className={styles.form_text}>Добавить новую вершину в граф?</p>
+          <label className={styles.form_label}>Название:</label>
+          <input
+            className={styles.form_name}
+            value={vertexName}
+            onChange={(e) => setVertexName(e.target.value)}
+            required
+            autoFocus
+          />
         </div>
       ),
       ok_text: "Добавить",

@@ -409,14 +409,18 @@ class ConsoleManager {
   }
 
   // Показать граф
+
   showGraph() {
     if (!this.currentGraph) {
-      console.error("❌ Ошибка: сначала создайте или выберите граф");
-      return;
+      return this.logResult(
+        false,
+        "❌ Ошибка: сначала создайте или выберите граф",
+      );
     }
 
-    console.log(`\nГРАФ: ${this.currentGraph.name}`);
-    console.log(this.currentGraph.toFileString());
+    const text = this.currentGraph.toFileString();
+
+    return this.logResult(true, text, text);
   }
 
   // Показать вершины
