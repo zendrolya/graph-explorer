@@ -1,4 +1,4 @@
-UNDIRECTED WEIGHTED
+WEIGHTED
 CityA: CityB(10) CityC(15) CityD(20)
 CityB: CityA(10) CityE(12) CityF(8)
 CityC: CityA(15) CityE(7) CityG(9)

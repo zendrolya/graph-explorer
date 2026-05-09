@@ -26,6 +26,16 @@ export class Graph {
       const lines = content.split("\n").filter((line) => line.trim());
 
       for (const line of lines) {
+        if (line.startsWith("DIRECTED")) {
+          graph.isDirected = true;
+          continue;
+        }
+
+        if (line.startsWith("UNDIRECTED")) {
+          graph.isDirected = false;
+          continue;
+        }
+
         if (line.startsWith("DIRECTED") || line.startsWith("UNDIRECTED"))
           continue;
 
@@ -399,7 +409,7 @@ export class Graph {
     // Тип графа
     const firstLine = lines[0].trim();
 
-    this.isDirected = firstLine.includes("DIRECTED");
+    this.isDirected = firstLine.startsWith("DIRECTED");
     this.isWeighted = firstLine.includes("WEIGHTED");
 
     for (let i = 1; i < lines.length; i++) {

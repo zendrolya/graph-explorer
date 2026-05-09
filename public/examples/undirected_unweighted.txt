@@ -1,4 +1,4 @@
-UNDIRECTED
+
 Alice: Bob Charlie David
 Bob: Alice Eve
 Charlie: Alice Frank

@@ -10,6 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .popup {
@@ -21,6 +22,7 @@
   background: #fff;
   border: 2px solid #000;
   border-radius: 30px;
+  z-index: 1001;
 }
 
 .close_button {

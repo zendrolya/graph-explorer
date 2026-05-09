@@ -23,10 +23,10 @@ class ConsoleManager {
     this.updateGraphData = updateGraphData;
 
     this.testFiles = [
-      { name: "Социальная сеть", file: "undirected_unweighted.txt" },
-      { name: "Карта метро", file: "directed_weighted.txt" },
-      { name: "Сеть дорог", file: "undirected_weighted.txt" },
       { name: "HTML структура", file: "directed_unweighted.txt" },
+      { name: "Карта метро", file: "directed_weighted.txt" },
+      { name: "Социальная сеть", file: "undirected_unweighted.txt" },
+      { name: "Сеть дорог", file: "undirected_weighted.txt" },
     ];
 
     this.bindCommands();

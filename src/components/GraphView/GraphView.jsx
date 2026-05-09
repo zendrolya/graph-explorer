@@ -14,6 +14,7 @@ function GraphView({
   const edgeHitboxesRef = useRef([]);
   const arrowHitboxesRef = useRef([]);
   const loopHitboxesRef = useRef([]);
+  const drawnPairsRef = useRef(new Set());
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -126,22 +127,57 @@ function GraphView({
       ctx.fillStyle = strokeColor;
       ctx.fill();
 
+      if (graphData.isWeighted) {
+        ctx.save();
+
+        ctx.fillStyle = "#000000";
+        ctx.font = `bold ${13 / globalScale}px Sans-Serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const textX = start.x;
+        const textY = start.y - r * 2.2;
+
+        const text = String(link.weight);
+
+        const metrics = ctx.measureText(text);
+        const padding = 4 / globalScale;
+
+        // белый фон
+        ctx.fillStyle = "#ffffff";
+
+        ctx.fillRect(
+          textX - metrics.width / 2 - padding,
+          textY - 8 / globalScale,
+          metrics.width + padding * 2,
+          16 / globalScale,
+        );
+
+        ctx.fillStyle = "#000000";
+
+        ctx.fillText(text, textX, textY);
+
+        ctx.restore();
+      }
+
       return;
     }
 
     /*
-    ==========================================
-    ОБЩАЯ ЛИНИЯ
-    ==========================================
-  */
+==========================================
+ОБЩАЯ ЛИНИЯ
+==========================================
+*/
 
     const pairKey = [link.from, link.to].sort().join("|");
 
-    const shouldDrawLine = link.from < link.to || !graphData.isDirected;
+    const shouldDrawLine =
+      !graphData.isDirected || !drawnPairsRef.current.has(pairKey);
 
     if (shouldDrawLine) {
+      drawnPairsRef.current.add(pairKey);
+
       const lineSelected =
-        !graphData.isDirected &&
         selectedEdge &&
         [selectedEdge.from, selectedEdge.to].sort().join("|") === pairKey;
 
@@ -150,16 +186,55 @@ function GraphView({
       ctx.moveTo(start.x, start.y);
       ctx.lineTo(end.x, end.y);
 
-      ctx.strokeStyle = lineSelected ? "#ff4d4f" : "#EF9312";
+      ctx.strokeStyle = isSelected || lineSelected ? "#ff4d4f" : "#EF9312";
 
-      ctx.lineWidth = lineSelected ? 3 / globalScale : 2.5 / globalScale;
+      ctx.lineWidth =
+        isSelected || lineSelected ? 3 / globalScale : 2.5 / globalScale;
 
       ctx.globalAlpha = 1;
 
       ctx.stroke();
 
       /*
-    hitbox линии
+  ==========================================
+  ВЕС НЕОРИЕНТИРОВАННОГО ГРАФА
+  ==========================================
+  */
+
+      if (!graphData.isDirected && graphData.isWeighted) {
+        const midX = (start.x + end.x) / 2;
+        const midY = (start.y + end.y) / 2;
+
+        ctx.save();
+
+        ctx.fillStyle = "#000000";
+        ctx.font = `bold ${14 / globalScale}px Sans-Serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // белый фон под текстом
+        const text = String(link.weight);
+        const padding = 4 / globalScale;
+        const metrics = ctx.measureText(text);
+
+        ctx.fillStyle = "#ffffff";
+
+        ctx.fillRect(
+          midX - metrics.width / 2 - padding,
+          midY - 8 / globalScale,
+          metrics.width + padding * 2,
+          16 / globalScale,
+        );
+
+        ctx.fillStyle = "#000000";
+
+        ctx.fillText(text, midX, midY);
+
+        ctx.restore();
+      }
+
+      /*
+  hitbox линии
   */
 
       edgeHitboxesRef.current.push({
@@ -196,14 +271,13 @@ function GraphView({
 
     const nodeRadius = 8;
 
-    // почти у вершины
-    const distToNode = nodeRadius + 6;
+    const distToNode = nodeRadius + 1;
 
     const arrowX = end.x - Math.cos(angle) * distToNode;
 
     const arrowY = end.y - Math.sin(angle) * distToNode;
 
-    const size = isSelected ? 18 / globalScale : 15 / globalScale;
+    const size = isSelected ? 30 / globalScale : 24 / globalScale;
 
     ctx.beginPath();
 
@@ -227,6 +301,22 @@ function GraphView({
 
     ctx.fill();
 
+    if (graphData.isWeighted) {
+      ctx.save();
+
+      ctx.fillStyle = "#000000";
+      ctx.font = `bold ${12 / globalScale}px Sans-Serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const textX = arrowX - Math.cos(angle) * (size * 0.5);
+      const textY = arrowY - Math.sin(angle) * (size * 0.65);
+
+      ctx.fillText(String(link.weight), textX, textY);
+
+      ctx.restore();
+    }
+
     /*
     hitbox стрелки
   */
@@ -235,23 +325,25 @@ function GraphView({
       id: link.id,
       from: link.from,
       to: link.to,
-      x: arrowX,
-      y: arrowY,
-      r: 20 / globalScale,
+      x1: arrowX - 18,
+      y1: arrowY - 18,
+      x2: arrowX + 18,
+      y2: arrowY + 18,
     });
   };
 
-  window.__drawnPairs = new Set();
-
-  edgeHitboxesRef.current = [];
-  arrowHitboxesRef.current = [];
-  loopHitboxesRef.current = [];
+  edgeHitboxesRef.current.length = 0;
+  arrowHitboxesRef.current.length = 0;
+  loopHitboxesRef.current.length = 0;
 
   return (
     <div ref={containerRef} className={styles.graphContainer}>
       {dimensions.width > 0 && dimensions.height > 0 && (
         <ForceGraph2D
           ref={graphRef}
+          onRenderFramePre={() => {
+            drawnPairsRef.current.clear();
+          }}
           graphData={graphData}
           nodeLabel="name"
           nodeCanvasObject={nodeCanvasObject}
@@ -259,6 +351,7 @@ function GraphView({
             selectedVertex === node.id ? "#ff6b6b" : "#1BA0D0"
           }
           linkCanvasObject={linkCanvasObject}
+          linkColor={() => "rgba(0,0,0,0)"}
           onNodeClick={handleNodeClick}
           onBackgroundClick={(event) => {
             const point = graphRef.current.screen2GraphCoords(
@@ -273,7 +366,12 @@ function GraphView({
   */
 
             for (const arrow of arrowHitboxesRef.current) {
-              if (pointNearPoint(point.x, point.y, arrow.x, arrow.y, arrow.r)) {
+              if (
+                point.x >= arrow.x1 &&
+                point.x <= arrow.x2 &&
+                point.y >= arrow.y1 &&
+                point.y <= arrow.y2
+              ) {
                 onEdgeClick({
                   id: arrow.id,
                   from: arrow.from,
