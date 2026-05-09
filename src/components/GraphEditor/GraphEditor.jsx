@@ -1,9 +1,9 @@
+import { useState, useEffect, useRef } from "react";
 import styles from "./GraphEditor.module.css";
 import GraphHeader from "../GraphHeader/GraphHeader.jsx";
 import GraphInstruments from "../GraphInstruments/GraphInstruments.jsx";
 import GraphView from "../GraphView/GraphView.jsx";
 import ConsoleManager from "../../core/ConsoleManager.js";
-import { useState, useEffect, useRef } from "react";
 import Popup from "../Popup/Popup.jsx";
 import Dialog from "../Dialog/Dialog.jsx";
 
@@ -115,7 +115,7 @@ function GraphEditor() {
         links: [],
       });
     }
-  }, [currentGraph, selectedVertex, selectedEdge]);
+  }, [currentGraph]);
 
   const updateGraphDataFromGraph = (graph) => {
     if (!graph) {
@@ -133,50 +133,45 @@ function GraphEditor() {
         id: v,
         name: v,
         val: 1,
-        color: selectedVertex === v ? "#ff6b6b" : "#1BA0D0",
+        color: "#1BA0D0", // Убираем условное окрашивание
       });
     });
 
     const edges = graph.toEdgeList();
 
-    // Группируем A↔B
-    const edgeMap = new Map();
+    const pairMap = new Map();
 
-    edges.forEach((e, i) => {
-      const key = [e.from, e.to].sort().join("|");
+    edges.forEach((e) => {
+      const key = `${e.from}|${e.to}`;
 
-      if (!edgeMap.has(key)) {
-        edgeMap.set(key, []);
+      if (!pairMap.has(key)) {
+        pairMap.set(key, []);
       }
 
-      edgeMap.get(key).push({
-        ...e,
-        id: `${e.from}->${e.to}#${i}`,
-      });
+      pairMap.get(key).push(e);
     });
 
-    edgeMap.forEach((group) => {
-      // одна линия
+    edges.forEach((e, index) => {
+      const reverseKey = `${e.to}|${e.from}`;
+      const hasReverse = pairMap.has(reverseKey);
+
+      let curvature = 0;
+
+      if (e.from === e.to) {
+        curvature = 0.6;
+      } else if (hasReverse && e.from !== e.to) {
+        curvature = 0.25;
+      }
+
       links.push({
-        type: "line",
-        id: `line-${group[0].from}-${group[0].to}`,
-        source: group[0].from,
-        target: group[0].to,
-      });
-
-      // отдельные дуги
-      group.forEach((edge) => {
-        links.push({
-          type: "arc",
-          id: edge.id,
-          source: edge.from,
-          target: edge.to,
-          from: edge.from,
-          to: edge.to,
-
-          weight: edge.weight,
-          label: graph.isWeighted ? edge.weight.toString() : "",
-        });
+        id: `${e.from}->${e.to}#${index}`,
+        source: e.from,
+        target: e.to,
+        from: e.from,
+        to: e.to,
+        weight: e.weight,
+        curvature,
+        label: graph.isWeighted ? String(e.weight) : "",
       });
     });
 
@@ -467,34 +462,39 @@ function GraphEditor() {
     });
   };
 
-  const handleDelete = () => {
-    if (!selectedVertex && !selectedEdge) {
-      showPopup("Ошибка", "Сначала выберите вершину или ребро");
+  const handleDeleteVertex = () => {
+    if (!selectedVertex) {
+      showPopup("Ошибка", "Сначала выберите вершину");
       return;
     }
 
-    if (selectedVertex) {
-      showDialog("Удаление вершины", {
-        onConfirm: () => {
-          consoleManagerRef.current.removeVertex(selectedVertex);
-          setSelectedVertex(null);
-          return { success: true };
-        },
-      });
+    showDialog("Удаление вершины", {
+      onConfirm: () => {
+        consoleManagerRef.current.removeVertex(selectedVertex);
+        setSelectedVertex(null);
+        return { success: true };
+      },
+    });
+  };
+
+  const handleDeleteEdge = () => {
+    if (!selectedEdge) {
+      showPopup("Ошибка", "Сначала выберите ребро или дугу");
+      return;
     }
 
-    if (selectedEdge) {
-      showDialog("Удаление ребра", {
-        onConfirm: () => {
-          consoleManagerRef.current.removeEdge(
-            selectedEdge.from,
-            selectedEdge.to,
-          );
-          setSelectedEdge(null);
-          return { success: true };
-        },
-      });
-    }
+    showDialog("Удаление ребра", {
+      onConfirm: () => {
+        consoleManagerRef.current.removeEdge(
+          selectedEdge.from,
+          selectedEdge.to,
+        );
+
+        setSelectedEdge(null);
+
+        return { success: true };
+      },
+    });
   };
 
   const handleShowAdjacency = () => {
@@ -576,15 +576,10 @@ function GraphEditor() {
 
       <main className={styles.main}>
         <GraphInstruments
-          consoleManagerRef={consoleManagerRef}
-          showPopup={showPopup}
-          showDialog={showDialog}
-          currentGraph={currentGraph}
-          selectedVertex={selectedVertex}
-          selectedEdge={selectedEdge}
           onAddVertex={handleAddVertex}
           onAddEdge={handleAddEdge}
-          onDelete={handleDelete}
+          onDeleteVertex={handleDeleteVertex}
+          onDeleteEdge={handleDeleteEdge}
           onShowAdjacency={handleShowAdjacency}
         />
 

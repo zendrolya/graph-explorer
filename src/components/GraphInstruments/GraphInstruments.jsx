@@ -1,15 +1,10 @@
 import styles from "./GraphInstruments.module.css";
 
 function GraphInstruments({
-  consoleManagerRef,
-  showPopup,
-  showDialog,
-  currentGraph,
-  selectedVertex,
-  selectedEdge,
   onAddVertex,
   onAddEdge,
-  onDelete,
+  onDeleteVertex,
+  onDeleteEdge,
   onShowAdjacency,
 }) {
   return (
@@ -25,21 +20,19 @@ function GraphInstruments({
           alt="Добавить вершину"
         />
       </button>
+
       <button
         className={styles.instruments_btn}
         title="Добавить ребро (дугу)"
         onClick={onAddEdge}
       >
-        <img
-          src="/icons/add-edge.svg"
-          draggable="false"
-          alt="Добавить ребро (дугу)"
-        />
+        <img src="/icons/add-edge.svg" draggable="false" alt="Добавить ребро" />
       </button>
+
       <button
         className={styles.instruments_btn}
         title="Удалить вершину"
-        onClick={onDelete}
+        onClick={onDeleteVertex}
       >
         <img
           src="/icons/del-vertex.svg"
@@ -47,26 +40,24 @@ function GraphInstruments({
           alt="Удалить вершину"
         />
       </button>
+
       <button
         className={styles.instruments_btn}
         title="Удалить ребро (дугу)"
-        onClick={onDelete}
+        onClick={onDeleteEdge}
       >
-        <img
-          src="/icons/del-edge.svg"
-          draggable="false"
-          alt="Удалить ребро (дугу)"
-        />
+        <img src="/icons/del-edge.svg" draggable="false" alt="Удалить ребро" />
       </button>
+
       <button
         className={styles.instruments_btn}
-        title="Вывести список смежности"
+        title="Список смежности"
         onClick={onShowAdjacency}
       >
         <img
           src="/icons/adjacency-list.svg"
           draggable="false"
-          alt="Вывести список смежности"
+          alt="Список смежности"
         />
       </button>
     </div>
