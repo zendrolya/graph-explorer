@@ -8,6 +8,7 @@ function GraphView({
   onEdgeClick,
   selectedVertex,
   selectedEdge,
+  animatedEdges = [],
 }) {
   const graphRef = useRef();
   const containerRef = useRef();
@@ -79,6 +80,10 @@ function GraphView({
     if (!start || !end) return;
 
     const isSelected = selectedEdge && selectedEdge.id === link.id;
+
+    const isAnimated = animatedEdges.some(
+      (edge) => edge.from === link.from && edge.to === link.to,
+    );
 
     /*
     ==========================================
@@ -186,7 +191,11 @@ function GraphView({
       ctx.moveTo(start.x, start.y);
       ctx.lineTo(end.x, end.y);
 
-      ctx.strokeStyle = isSelected || lineSelected ? "#ff4d4f" : "#EF9312";
+      ctx.strokeStyle = isAnimated
+        ? "#00c853"
+        : isSelected || lineSelected
+          ? "#ff4d4f"
+          : "#EF9312";
 
       ctx.lineWidth =
         isSelected || lineSelected ? 3 / globalScale : 2.5 / globalScale;
@@ -297,7 +306,7 @@ function GraphView({
 
     ctx.closePath();
 
-    ctx.fillStyle = isSelected ? "#ff4d4f" : "#EF9312";
+    ctx.fillStyle = isAnimated ? "#00c853" : isSelected ? "#ff4d4f" : "#EF9312";
 
     ctx.fill();
 
@@ -309,7 +318,7 @@ function GraphView({
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      const textX = arrowX - Math.cos(angle) * (size * 0.5);
+      const textX = arrowX - Math.cos(angle) * (size * 0.6);
       const textY = arrowY - Math.sin(angle) * (size * 0.65);
 
       ctx.fillText(String(link.weight), textX, textY);

@@ -259,7 +259,7 @@ export class Graph {
     let result = "";
 
     // Заголовок с типом графа
-    result += this.isDirected ? "DIRECTED" : "UNDIRECTED";
+    result += this.isDirected ? "DIRECTED" : "";
     result += this.isWeighted ? " WEIGHTED\n" : "\n";
 
     // Название графа как комментарий
@@ -923,5 +923,125 @@ export class Graph {
     }
 
     return maxFlow;
+  }
+
+  maxFlowFordFulkersonSteps(source, sink) {
+    if (!this.isDirected) {
+      throw new Error(
+        "Алгоритм максимального потока требует ориентированный граф",
+      );
+    }
+
+    if (!this.isWeighted) {
+      throw new Error("Граф должен быть взвешенным");
+    }
+
+    const residual = new Map();
+
+    for (const [u, neighbors] of this.adjacencyList) {
+      residual.set(u, new Map());
+
+      for (const [v, capacity] of neighbors) {
+        residual.get(u).set(v, capacity);
+
+        if (!residual.has(v)) {
+          residual.set(v, new Map());
+        }
+
+        if (!residual.get(v).has(u)) {
+          residual.get(v).set(u, 0);
+        }
+      }
+    }
+
+    const steps = [];
+
+    let maxFlow = 0;
+
+    const bfs = () => {
+      const queue = [source];
+      const visited = new Set([source]);
+      const parent = {};
+
+      while (queue.length > 0) {
+        const u = queue.shift();
+
+        for (const [v, capacity] of residual.get(u)) {
+          if (!visited.has(v) && capacity > 0) {
+            visited.add(v);
+
+            parent[v] = u;
+
+            queue.push(v);
+
+            if (v === sink) {
+              return parent;
+            }
+          }
+        }
+      }
+
+      return null;
+    };
+
+    let parent;
+
+    while ((parent = bfs()) !== null) {
+      const path = [];
+
+      let pathFlow = Infinity;
+
+      let v = sink;
+
+      while (v !== source) {
+        const u = parent[v];
+
+        path.unshift({
+          from: u,
+          to: v,
+        });
+
+        pathFlow = Math.min(pathFlow, residual.get(u).get(v));
+
+        v = u;
+      }
+
+      const changedEdges = [];
+
+      v = sink;
+
+      while (v !== source) {
+        const u = parent[v];
+
+        const before = residual.get(u).get(v);
+
+        residual.get(u).set(v, residual.get(u).get(v) - pathFlow);
+
+        residual.get(v).set(u, residual.get(v).get(u) + pathFlow);
+
+        changedEdges.push({
+          from: u,
+          to: v,
+          before,
+          after: residual.get(u).get(v),
+        });
+
+        v = u;
+      }
+
+      maxFlow += pathFlow;
+
+      steps.push({
+        path,
+        pathFlow,
+        totalFlow: maxFlow,
+        changedEdges,
+      });
+    }
+
+    return {
+      maxFlow,
+      steps,
+    };
   }
 }

@@ -22,6 +22,7 @@ function Dialog({
   // Действия
   onConfirm,
   onSelectGraph,
+  onShowAnimation,
 }) {
   /* =========================
      FORM STATE
@@ -506,6 +507,18 @@ function Dialog({
               <button type="submit" className={styles.ok_button}>
                 {currentDialog.ok_text}
               </button>
+
+              {type === "Максимальный поток" && (
+                <button
+                  type="button"
+                  className={styles.animation_button}
+                  onClick={() => {
+                    onShowAnimation?.(fromVertex, toVertex);
+                  }}
+                >
+                  Показать анимацию
+                </button>
+              )}
 
               <button
                 type="button"

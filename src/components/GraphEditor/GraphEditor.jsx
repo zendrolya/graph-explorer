@@ -6,6 +6,7 @@ import GraphView from "../GraphView/GraphView.jsx";
 import ConsoleManager from "../../core/ConsoleManager.js";
 import Popup from "../Popup/Popup.jsx";
 import Dialog from "../Dialog/Dialog.jsx";
+import MaxFlowAnimation from "../MaxFlowAnimation/MaxFlowAnimation.jsx";
 
 function GraphEditor() {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -37,6 +38,9 @@ function GraphEditor() {
     type: "",
     props: {},
   });
+
+  // Анимация
+  const [animationData, setAnimationData] = useState(null);
 
   const containerRef = useRef(null);
   const consoleManagerRef = useRef(null);
@@ -420,6 +424,7 @@ function GraphEditor() {
       case "Максимальный поток":
         showDialog("Максимальный поток", {
           vertices: currentGraph.getVertices(),
+
           onConfirm: (source, sink) => {
             const result = consoleManagerRef.current.maxFlow(source, sink);
 
@@ -429,9 +434,33 @@ function GraphEditor() {
             }
 
             showPopup("Максимальный поток", result.message);
+
             return result;
           },
+
+          onShowAnimation: (source, sink) => {
+            try {
+              const result = currentGraph.maxFlowFordFulkersonSteps(
+                source,
+                sink,
+              );
+
+              setAnimationData({
+                isOpen: true,
+                source,
+                sink,
+                steps: result.steps,
+                maxFlow: result.maxFlow,
+                currentStep: 0,
+              });
+
+              closeDialog();
+            } catch (error) {
+              showPopup("Ошибка", error.message);
+            }
+          },
         });
+
         break;
     }
   };
@@ -589,6 +618,9 @@ function GraphEditor() {
           onEdgeClick={handleEdgeClick}
           selectedVertex={selectedVertex}
           selectedEdge={selectedEdge}
+          animatedEdges={
+            animationData?.steps[animationData.currentStep]?.path || []
+          }
         />
       </main>
 
@@ -605,6 +637,19 @@ function GraphEditor() {
           type={dialogData.type}
           onClose={closeDialog}
           {...dialogData.props}
+        />
+      )}
+
+      {animationData?.isOpen && (
+        <MaxFlowAnimation
+          data={animationData}
+          onClose={() => setAnimationData(null)}
+          onStepChange={(index) => {
+            setAnimationData((prev) => ({
+              ...prev,
+              currentStep: index,
+            }));
+          }}
         />
       )}
     </div>

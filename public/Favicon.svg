@@ -1,22 +1,22 @@
 <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-<line x1="16.3661" y1="22.4853" x2="23.6831" y2="15.1683" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="10.9559" y1="37.7063" x2="13.151" y2="44.8499" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="18.8394" y1="58.4565" x2="26.4492" y2="70.2099" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="37.3854" y1="16.4949" x2="44.7024" y2="26.251" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="55.2976" y1="26.251" x2="62.6146" y2="16.4949" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="76.2605" y1="13.8966" x2="84.7971" y2="21.2137" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="87.9701" y1="37.2425" x2="85.9701" y2="45.2425" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="78.8899" y1="60.4562" x2="73.8899" y2="70.2096" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="38.4049" y1="82.1485" x2="43.2829" y2="85.8071" stroke="#1BA0D0" stroke-width="2"/>
-<line x1="56.7812" y1="85.7628" x2="62.4641" y2="82.1557" stroke="#1BA0D0" stroke-width="2"/>
-<circle cx="31" cy="10" r="8.5" stroke="#EF9312"/>
-<circle cx="9" cy="29" r="8.5" stroke="#EF9312"/>
-<circle cx="13" cy="53" r="8.5" stroke="#EF9312"/>
-<circle cx="31" cy="77" r="8.5" stroke="#EF9312"/>
-<circle cx="50" cy="91" r="8.5" stroke="#EF9312"/>
-<circle cx="83" cy="53" r="8.5" stroke="#EF9312"/>
-<circle cx="69" cy="77" r="8.5" stroke="#EF9312"/>
-<circle cx="88" cy="29" r="8.5" stroke="#EF9312"/>
-<circle cx="50" cy="33" r="8.5" stroke="#EF9312"/>
-<circle cx="68" cy="10" r="8.5" stroke="#EF9312"/>
+<line x1="15.0501" y1="23.8391" x2="26.0501" y2="14.8391" stroke="#EF9312" stroke-width="3"/>
+<line x1="11.4643" y1="37.6746" x2="13.4643" y2="46.6746" stroke="#EF9312" stroke-width="3"/>
+<line x1="19.2655" y1="61.1947" x2="26.2655" y2="72.1947" stroke="#EF9312" stroke-width="3"/>
+<line x1="37.1189" y1="17.001" x2="45.0213" y2="25.852" stroke="#EF9312" stroke-width="3"/>
+<line x1="54.9786" y1="25.8519" x2="62.8811" y2="17.001" stroke="#EF9312" stroke-width="3"/>
+<line x1="75.9499" y1="13.8391" x2="86.9499" y2="22.8391" stroke="#EF9312" stroke-width="3"/>
+<line x1="88.4643" y1="37.3254" x2="86.4643" y2="46.3254" stroke="#EF9312" stroke-width="3"/>
+<line x1="82.2481" y1="60.8321" x2="74.2481" y2="72.8321" stroke="#EF9312" stroke-width="3"/>
+<line x1="37.1523" y1="83.0397" x2="42.1523" y2="89.0397" stroke="#EF9312" stroke-width="3"/>
+<line x1="56.8611" y1="90.0238" x2="62.8611" y2="83.0238" stroke="#EF9312" stroke-width="3"/>
+<circle cx="31" cy="11" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="10" cy="29" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="15" cy="54" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="31" cy="78" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="50" cy="91" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="85" cy="54" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="69" cy="78" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="90" cy="29" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="50" cy="32" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
+<circle cx="69" cy="11" r="7.5" stroke="#1BA0D0" stroke-width="3"/>
 </svg>
